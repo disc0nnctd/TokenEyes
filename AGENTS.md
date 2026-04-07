@@ -20,9 +20,11 @@ TokenEyes converts real-world prices (read from photos via vision AI) into AI to
 ```
 cloudflare/          ← MAIN PRODUCT (Cloudflare Pages static site)
   index.html         ← entire app: camera, provider config, token math, UI
+  _worker.js         ← active runtime for dynamic routes: /proxy, /advisor, /country
   functions/
-    advisor.js       ← Pages Function: free quip generation via Gemma 4 (Workers AI)
-    country.js       ← Pages Function: returns visitor's CF country code (free)
+    advisor.js       ← legacy Pages Function copy (runtime logic is in _worker.js)
+    country.js       ← legacy Pages Function copy (runtime logic is in _worker.js)
+    proxy.js         ← legacy Pages Function copy (runtime logic is in _worker.js)
   _headers           ← CSP + security headers
   DEPLOY.md          ← deployment instructions + required CF bindings
 
@@ -66,7 +68,10 @@ cp .env.example .env
 |---|---|---|
 | Gemini | `GEMINI_API_KEY` | Vision (image → price) |
 | OpenRouter | `OPENROUTER_API_KEY` | Vision (free models available) |
+| NVIDIA NIM | `NVIDIA_API_KEY` | Vision + text generation (`/proxy` fallback chain, shared key mode) |
 | Cloudflare Workers AI | `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_WORKERS_API_KEY` | Vision (Llama/Gemma) |
+| Proxy password | `PROXY_PASSWORD` | Required for shared key mode (`POST /proxy`) |
+| Cloudflare AI REST (proxy fallback) | `CF_ACCOUNT_ID` + `CF_API_TOKEN` | Optional final fallback in `/proxy` |
 
 The Cloudflare Pages app takes keys **in-browser only** — no server, no key logging.
 
@@ -76,8 +81,8 @@ The Cloudflare Pages app takes keys **in-browser only** — no server, no key lo
 
 The funny one-liner after each result has two paths:
 
-- **Normal mode** (default): calls user's vision provider with a culturally-enriched prompt using `detectedCountry` (from `/country` Pages Function). Uses ~100 output tokens from user's key.
-- **Simple mode** (toggle in UI): calls `/advisor` Pages Function → Gemma 4 on Workers AI → KV pool → 25 hardcoded static quips. Zero user quota used.
+- **Normal mode** (default): calls user's vision provider with a culturally-enriched prompt using `detectedCountry` (from `/country` route in `_worker.js`). Uses ~100 output tokens from user's key.
+- **Simple mode** (toggle in UI): calls `/advisor` route in `_worker.js` → Gemma 4 on Workers AI → KV pool → 25 hardcoded static quips. Zero user quota used.
 
 ---
 
@@ -91,7 +96,7 @@ The funny one-liner after each result has two paths:
 
 - **`cloudflare/_redirects`** — intentionally empty (no SPA fallback; Cloudflare would loop)
 - **`cloudflare/_headers`** CSP — `connect-src` must list all API domains explicitly; breaking it blocks user API calls
-- **`functions/advisor.js` `POOL_MAX`** — caps the quip pool at 300 entries to keep KV read/write fast; raising it is safe but pointless (diversity plateaus well before 300)
+- **`cloudflare/_worker.js` `POOL_MAX`** — caps the quip pool at 300 entries to keep KV read/write fast; raising it is safe but pointless (diversity plateaus well before 300)
 - **`web/` directory** — local dev only, not deployed; don't add complexity here
 
 ---
@@ -105,7 +110,7 @@ The funny one-liner after each result has two paths:
 | Add a new vision model option (CF AI) | `cloudflare/index.html` `#cf-model-input` select options + `cfVisionModel` state |
 | Add a new OpenRouter free model | `cloudflare/index.html` `OPENROUTER_MODELS` array + `tokeneyes/vision.py` `OPENROUTER_FREE_MODELS` |
 | Change quip prompt tone | `cloudflare/index.html` `quipPrompt` / `normalQuipPrompt` functions |
-| Update Gemma model used for free quips | `cloudflare/functions/advisor.js` `ADVISOR_MODEL` constant |
+| Update Gemma model used for free quips | `cloudflare/_worker.js` `ADVISOR_MODEL` constant |
 | Change token split ratios | `cloudflare/index.html` `calcTokens()` `sp` object |
 | Update share card design | `cloudflare/index.html` `#share-btn` click handler (Canvas API) |
 | Add a fun fact reference | `cloudflare/index.html` `REFS` array |
@@ -170,7 +175,7 @@ _Reviewed by Claude Sonnet 4.6 · 2026-04-07_
 
 The architecture as documented is logically sound. Specific checks:
 
-- **Security model** — user keys are memory-only in-browser, never touch any TokenEyes server. Pages Functions (`advisor.js`, `country.js`) use the deployer's Workers AI binding exclusively. No credentials are committed to the repo. Safe to open-source as-is.
+- **Security model** — user keys are memory-only in-browser, never touch any TokenEyes server. Dynamic routes in `_worker.js` (`/advisor`, `/country`) use the deployer's Workers AI binding exclusively. No credentials are committed to the repo. Safe to open-source as-is.
 - **Quip fallback chain** — Normal (user key + country context) → Simple toggle (`/advisor` → Gemma 4 → KV pool → 25 static quips). Every layer degrades gracefully; the UI always gets a quip or hides the card cleanly.
 - **Provider/model flow** — per-provider model selectors (Gemini, CF AI, OpenRouter) wired to state variables and used in the correct API calls. Default model shown on first load. `r-via` chip reflects the actual model used.
 - **Token math** — split ratios (30/20/50 with reasoning, 40/60 without) are applied consistently in `calcTokens()` and used in both the hero count and the full table.

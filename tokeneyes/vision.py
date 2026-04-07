@@ -8,6 +8,8 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
+from .currency import canonicalize_currency, coerce_number, convert_price_to_usd, format_currency
+
 # Free OpenRouter vision models (updated April 2026).
 # openrouter/auto routes to the best available free multimodal model automatically.
 OPENROUTER_FREE_MODELS = [
@@ -31,9 +33,16 @@ Return JSON (no markdown fencing):
   "item": "<short description of the item>",
   "price": <numeric price as a float>,
   "currency": "<3-letter currency code, e.g. USD, EUR, GBP>",
-  "price_usd": <price converted to USD (use approximate current rates)>,
+  "price_usd": <same as price if currency is USD, otherwise null>,
   "confidence": "read"
 }
+
+Rules:
+- Read the local price exactly as shown.
+- Return the actual local currency as a 3-letter code.
+- If the tag only shows a symbol, infer the 3-letter code from context.
+- If the price is already in USD, set "price_usd" to the same numeric value.
+- If the price is another currency, set "price_usd" to null.
 
 If you cannot find a visible price, return:
 {"item": "<what you see>", "price": null, "currency": null, "price_usd": null, "confidence": "none"}
@@ -62,9 +71,15 @@ Return JSON (no markdown fencing):
   "item": "<short description of the item>",
   "price": <numeric price as a float>,
   "currency": "<3-letter currency code, e.g. USD, EUR, GBP>",
-  "price_usd": <price converted to USD (use approximate current rates)>,
+  "price_usd": <same as price if currency is USD, otherwise null>,
   "confidence": "read"
 }
+
+Rules:
+- Read the local price exactly as stated.
+- Return the actual local currency as a 3-letter code.
+- If the stated price is already in USD, set "price_usd" to the same numeric value.
+- If the stated price is another currency, set "price_usd" to null.
 
 If no explicit price is present, return:
 {"item": "<what is described>", "price": null, "currency": null, "price_usd": null, "confidence": "none"}
@@ -86,19 +101,26 @@ Return JSON (no markdown fencing):
 """
 
 QUIP_PROMPT = """\
-I just found out that a {item} (${price:.2f}) is equivalent to {tokens:,} {model_name} tokens.
+{item} costs {price_label} and is equivalent to {tokens:,} {model_name} tokens.
 
-Write a single short funny one-liner (under 100 chars) about this. Be witty and slightly \
-absurd. No quotes around it. Just the line.
+Write one short productivity meme line (under 110 chars) about what that same spend could
+have done in useful AI work: proposals, research briefs, support replies, summaries,
+spreadsheet cleanup, or admin work.
+
+Keep it punchy, money-aware, and a little ruthless.
+Avoid tweets, chat minutes, random internet culture, and absurd sci-fi jokes.
+No quotes. Just the line.
 """
 
 
 @dataclass
 class VisionResult:
     item: str
+    price: float | None
     price_usd: float | None
     currency: str | None
     confidence: str  # "read", "estimated", or "none"
+    exchange_rate: float | None = None
     backend: str = "unknown"
 
 
@@ -274,13 +296,20 @@ def _parse_result(text: str, backend: str) -> VisionResult:
     try:
         data = json.loads(text)
     except json.JSONDecodeError:
-        return VisionResult(item="unknown", price_usd=None, currency=None,
+        return VisionResult(item="unknown", price=None, price_usd=None, currency=None,
                             confidence="none", backend=backend)
+    currency = canonicalize_currency(data.get("currency"))
+    price = coerce_number(data.get("price"))
+    if price is None and currency == "USD":
+        price = coerce_number(data.get("price_usd"))
+    price_usd, exchange_rate = convert_price_to_usd(price, currency, data.get("price_usd"))
     return VisionResult(
         item=data.get("item", "unknown"),
-        price_usd=data.get("price_usd"),
-        currency=data.get("currency"),
+        price=price,
+        price_usd=price_usd,
+        currency=currency,
         confidence=data.get("confidence", "none"),
+        exchange_rate=exchange_rate,
         backend=backend,
     )
 
@@ -327,17 +356,27 @@ def _dispatch_text(text: str, prompt: str, backend: str, or_model: str) -> Visio
     raise ValueError(f"Unknown backend: {backend!r}. Use 'gemini' or 'openrouter'.")
 
 
-def generate_quip(item: str, price: float, tokens: int, model_name: str,
+def generate_quip(item: str, price_usd: float, tokens: int, model_name: str,
+                  original_price: float | None = None, currency: str | None = None,
                   backend: str = "auto", or_model: str = OPENROUTER_DEFAULT_MODEL) -> str:
-    """Generate a fun one-liner comparing the purchase to tokens."""
+    """Generate a practical one-liner comparing the purchase to tokens."""
     try:
         if backend == "auto":
             backend = detect_backend()
-        prompt = QUIP_PROMPT.format(item=item, price=price, tokens=tokens, model_name=model_name)
+        price_label = format_currency(price_usd, "USD") or "$0.00"
+        local_label = format_currency(original_price, currency)
+        if local_label and canonicalize_currency(currency) not in (None, "USD"):
+            price_label = f"{local_label} ({price_label})"
+        prompt = QUIP_PROMPT.format(
+            item=item,
+            price_label=price_label,
+            tokens=tokens,
+            model_name=model_name,
+        )
         if backend == "gemini":
             return _quip_gemini(prompt)
         if backend == "openrouter":
             return _quip_openrouter(prompt, or_model)
     except Exception:
         pass
-    return f"That's a lot of tokens for a {item}."
+    return "Your backlog could've been lighter. Instead, you bought this."

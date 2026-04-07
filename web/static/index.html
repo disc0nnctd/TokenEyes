@@ -788,7 +788,7 @@ async function analyze() {
 // ── Render ────────────────────────────────────────────────────────────────
 function renderResults(data) {
   document.getElementById('r-item').textContent = data.item;
-  document.getElementById('r-price').textContent = `$${data.price_usd.toFixed(2)}`;
+  document.getElementById('r-price').textContent = describePrice(data);
 
   const badge = document.getElementById('r-badge');
   const badgeMap = {
@@ -800,7 +800,9 @@ function renderResults(data) {
   badge.textContent = label;
   badge.className = 'badge ' + cls;
 
-  document.getElementById('r-backend').textContent = 'via ' + data.backend;
+  document.getElementById('r-backend').textContent = data.currency && data.currency !== 'USD' && data.price != null
+    ? `via ${data.backend} · ECB FX ${data.exchange_rate_date || ''}`
+    : 'via ' + data.backend;
 
   const tbody = document.getElementById('token-tbody');
   tbody.innerHTML = data.breakdowns.map(b => `
@@ -830,6 +832,25 @@ function fmt(n) {
   if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
   if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
   return n.toLocaleString();
+}
+
+function formatMoney(amount, currency = 'USD') {
+  const value = Number(amount);
+  if (!Number.isFinite(value)) return '';
+  try {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(value);
+  } catch {
+    const decimals = currency === 'JPY' || currency === 'KRW' || currency === 'IDR' ? 0 : 2;
+    return `${currency} ${value.toFixed(decimals)}`;
+  }
+}
+
+function describePrice(data) {
+  const usd = formatMoney(data.price_usd, 'USD');
+  if (data.currency && data.currency !== 'USD' && data.price != null) {
+    return `${formatMoney(data.price, data.currency)} -> ${usd}`;
+  }
+  return usd;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────

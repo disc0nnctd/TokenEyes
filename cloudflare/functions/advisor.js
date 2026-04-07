@@ -12,7 +12,7 @@
 // → Update ADVISOR_MODEL if a newer model appears in the CF Workers AI catalog:
 //   https://developers.cloudflare.com/workers-ai/models/
 //
-// What this generates: ONLY the funny one-liner quip/meme text.
+// What this generates: ONLY the short productivity-meme line.
 // Vision (price extraction) is done client-side with the user's own API key — never touches this function.
 
 const ADVISOR_MODEL = '@cf/google/gemma-4-26b-a4b-it';
@@ -21,33 +21,33 @@ const POOL_KEY = 'quip_pool';
 const POOL_MAX = 300; // keep at most this many saved quips
 
 // Static fallback pool — used when AI quota is exhausted AND KV pool is empty.
-// These are generic enough to work without knowing the specific item or price.
+// These stay grounded in budget/productivity tradeoffs instead of meme jokes.
 const STATIC_POOL = [
-  "Your wallet called. It's filing for emotional damages.",
-  "That's enough tokens to make an AI write your entire personality.",
-  "Somewhere, a GPU is crying into its cooling fan.",
-  "Bold choice. Have you considered hoarding tokens instead?",
-  "That's not a purchase, that's a hostage situation with your bank account.",
-  "You could've trained a small language model for that price.",
-  "At this point just buy a GPU and become the AI.",
-  "The tokens you could've had are watching from the other side.",
-  "An AI could've written 10,000 mediocre LinkedIn posts for that.",
-  "Technically you could generate an entire TV season instead.",
-  "That's enough reasoning tokens to solve a problem that doesn't exist yet.",
-  "Some people buy experiences. You bought this.",
-  "Your financial advisor has left the chat.",
-  "In token terms, this is basically a war crime against your wallet.",
-  "An LLM could've talked you out of this for literally $0.003.",
-  "Not judging. But also, definitely judging.",
-  "That's enough tokens to gaslight an entire chatbot fleet.",
-  "Did the AI guilt-trip you into this? Because same.",
-  "The opportunity cost is giving me an existential crisis.",
-  "An AI could've written every excuse you've ever needed for that.",
-  "Cheaper to mine Bitcoin on a potato.",
-  "Imagine hiring 1,000 interns instead. You didn't. Here we are.",
-  "That's a lot of tokens. Your future self has thoughts.",
-  "Token math doesn't lie, but it does judge.",
-  "This is why we can't have nice compute.",
+  "Your inbox could've been empty. Instead, you bought this.",
+  "This price tag just ate a perfectly good proposal sprint.",
+  "A support backlog somewhere would love this budget.",
+  "That could've been a lot of spreadsheet cleanup and closure.",
+  "You didn't buy a thing. You cancelled some future productivity.",
+  "This is why the ops team can't have nice automation.",
+  "A stack of first drafts died for this purchase.",
+  "That spend had serious meeting-summary potential.",
+  "Your admin queue just watched this happen in silence.",
+  "This item is wearing a follow-up email budget.",
+  "Congrats on converting workflow budget into an object.",
+  "A research brief factory could've eaten on this.",
+  "This could've been a cleaner CRM and a nicer afternoon.",
+  "That's at least one tragic spreadsheet before-and-after.",
+  "Your proposal pipeline just took emotional damage.",
+  "This is basically anti-automation merchandise.",
+  "A lot of tedious work could've quietly disappeared for that.",
+  "That spend belongs in a before/after productivity meme.",
+  "The ops budget is judging this purchase from a distance.",
+  "You bought this with money that had admin-killing potential.",
+  "That price is one very preventable backlog.",
+  "Some poor workflow just lost its upgrade budget.",
+  "This could've been support replies with suspiciously good grammar.",
+  "That spend was one dashboard cleanup away from greatness.",
+  "The spreadsheet won zero games here today.",
 ];
 
 export async function onRequestPost(context) {

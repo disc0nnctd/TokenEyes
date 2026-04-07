@@ -7,6 +7,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
+from .currency import FX_RATE_DATE, canonicalize_currency, format_currency
 from .pricing import TokenBreakdown
 
 console = Console()
@@ -29,6 +30,8 @@ def render(
     confidence: str,
     breakdowns: list[TokenBreakdown],
     quip: str | None = None,
+    original_price: float | None = None,
+    currency: str | None = None,
 ) -> None:
     """Render the full TokenEyes output to the terminal."""
     # Header
@@ -43,10 +46,17 @@ def render(
         "manual": "manual input",
     }.get(confidence, confidence)
 
+    currency_code = canonicalize_currency(currency)
+    usd_label = format_currency(price_usd, "USD") or "$0.00"
+    original_label = format_currency(original_price, currency_code)
+    price_label = usd_label
+    if currency_code not in (None, "USD") and original_label:
+        price_label = f"{original_label} -> {usd_label}"
+
     header = Text()
     header.append(" TOKENEYES ", style="bold white on blue")
     header.append(f"  {item} ", style="bold")
-    header.append(f"- ${price_usd:.2f} ", style="bold green")
+    header.append(f"- {price_label} ", style="bold green")
     header.append("(")
     header.append(conf_text, style=conf_style)
     header.append(")")
@@ -54,6 +64,10 @@ def render(
     console.print()
     console.print(header)
     console.print()
+
+    if currency_code not in (None, "USD") and original_label:
+        console.print(f"[dim]Original photo price: {original_label} | Hardcoded ECB FX: {FX_RATE_DATE}[/dim]")
+        console.print()
 
     # Table
     table = Table(

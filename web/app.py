@@ -11,6 +11,7 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from tokeneyes.currency import FX_RATE_DATE
 from tokeneyes.vision import OPENROUTER_DEFAULT_MODEL
 
 # Load env from project root
@@ -111,6 +112,8 @@ async def analyze(
                 result.item, result.price_usd,
                 breakdowns[0]["total_tokens"] if isinstance(breakdowns[0], dict) else breakdowns[0].total_tokens,
                 breakdowns[0]["display_name"] if isinstance(breakdowns[0], dict) else breakdowns[0].display_name,
+                original_price=result.price,
+                currency=result.currency,
                 backend=backend, or_model=or_model,
             )
     except Exception:
@@ -118,12 +121,15 @@ async def analyze(
 
     return JSONResponse({
         "item": result.item,
+        "price": result.price,
         "price_usd": result.price_usd,
         "currency": result.currency,
         "confidence": result.confidence,
         "input_mode": input_mode,
         "backend": result.backend,
         "quip": quip,
+        "exchange_rate": result.exchange_rate,
+        "exchange_rate_date": FX_RATE_DATE,
         "breakdowns": [
             {
                 "model": b.model,

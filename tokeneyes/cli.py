@@ -82,12 +82,16 @@ def main(
     item = "item"
     confidence = "manual"
     price_usd = price
+    original_price = price
+    currency = "USD" if price is not None else None
     used_backend = None
 
     if price is not None:
         item = "custom amount"
         confidence = "manual"
         price_usd = price
+        original_price = price
+        currency = "USD"
     elif source is not None:
         from .vision import read_price, guess_price, generate_quip
 
@@ -98,7 +102,9 @@ def main(
             result = read_price(source, backend=backend, or_model=or_model)
 
         item = result.item
+        original_price = result.price
         price_usd = result.price_usd
+        currency = result.currency
         confidence = result.confidence
         used_backend = result.backend
 
@@ -128,10 +134,15 @@ def main(
             from .vision import generate_quip
             best = breakdowns[0]
             quip = generate_quip(
-                item, price_usd, best.total_tokens, best.display_name,
+                item,
+                price_usd,
+                best.total_tokens,
+                best.display_name,
+                original_price=original_price,
+                currency=currency,
                 backend=backend, or_model=or_model,
             )
         except Exception:
             pass
 
-    render(item, price_usd, confidence, breakdowns, quip)
+    render(item, price_usd, confidence, breakdowns, quip, original_price=original_price, currency=currency)

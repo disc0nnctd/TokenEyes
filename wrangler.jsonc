@@ -1,13 +1,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "token-eyes",
+  "pages_build_output_dir": "cloudflare",
   "compatibility_date": "2026-04-07",
-  "observability": {
-    "enabled": true
-  },
-  "assets": {
-    "directory": "cloudflare"
-  },
   "compatibility_flags": [
     "nodejs_compat"
   ]

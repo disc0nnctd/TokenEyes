@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-# Prices in USD per 1 million tokens (as of 2025-Q2)
+# Prices in USD per 1 million tokens (updated 2026-04-07).
+# Keep this in sync with the MODELS array in cloudflare/index.html.
 MODELS: dict[str, dict[str, float]] = {
     "claude-sonnet-4-6": {
         "input": 3.00,
@@ -12,28 +13,41 @@ MODELS: dict[str, dict[str, float]] = {
         "reasoning": 3.00,
     },
     "claude-opus-4-6": {
-        "input": 15.00,
-        "output": 75.00,
-        "reasoning": 15.00,
+        "input": 5.00,
+        "output": 25.00,
+        "reasoning": 5.00,
     },
     "claude-haiku-4-5": {
-        "input": 0.80,
-        "output": 4.00,
-        "reasoning": 0.80,
-    },
-    "gemini-2.5-flash": {
-        "input": 0.15,
-        "output": 0.60,
-        "reasoning": 0.25,
+        "input": 1.00,
+        "output": 5.00,
+        "reasoning": 1.00,
     },
     "gemini-2.5-pro": {
         "input": 1.25,
         "output": 10.00,
         "reasoning": 1.25,
     },
+    "gemini-2.5-flash": {
+        "input": 0.30,
+        "output": 2.50,
+        "reasoning": 0.25,
+    },
+    "gemini-2.5-flash-lite": {
+        "input": 0.10,
+        "output": 0.40,
+    },
+    "gpt-5": {
+        "input": 1.25,
+        "output": 10.00,
+    },
     "gpt-4o": {
         "input": 2.50,
         "output": 10.00,
+    },
+    "o4-mini": {
+        "input": 1.10,
+        "output": 4.40,
+        "reasoning": 1.10,
     },
     "gpt-4o-mini": {
         "input": 0.15,
@@ -46,9 +60,12 @@ DISPLAY_NAMES: dict[str, str] = {
     "claude-sonnet-4-6": "Claude Sonnet 4.6",
     "claude-opus-4-6": "Claude Opus 4.6",
     "claude-haiku-4-5": "Claude Haiku 4.5",
-    "gemini-2.5-flash": "Gemini 2.5 Flash",
     "gemini-2.5-pro": "Gemini 2.5 Pro",
+    "gemini-2.5-flash": "Gemini 2.5 Flash",
+    "gemini-2.5-flash-lite": "Gemini 2.5 Flash-Lite",
+    "gpt-5": "GPT-5",
     "gpt-4o": "GPT-4o",
+    "o4-mini": "o4-mini",
     "gpt-4o-mini": "GPT-4o Mini",
 }
 

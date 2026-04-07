@@ -35,7 +35,7 @@ When updating, verify against the provider's official pricing page (links in AGE
 
 ## Security (Open Source Deployment)
 
-This project will be publicly open-sourced. All API keys are user-supplied in-browser — none are baked into the code. The Pages Functions (`advisor.js`, `country.js`) use the **deployer's** Workers AI binding, not user keys. Never add hardcoded credentials, account IDs, or anything that would expose the deployer's identity. See security note in DEPLOY.md.
+This project will be publicly open-sourced. All API keys are user-supplied in-browser — none are baked into the code. Runtime routes in `cloudflare/_worker.js` (including `/advisor`, `/country`, `/proxy`) use the **deployer's** bindings/secrets, not user keys. Never add hardcoded credentials, account IDs, or anything that would expose the deployer's identity. See security note in DEPLOY.md.
 
 ## Do Not
 
