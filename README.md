@@ -1,71 +1,89 @@
-# TokenPrice
+# TokenEyes
 
 **See the world in AI tokens.**
 
-Point your camera at anything with a price tag, and TokenPrice tells you how many AI tokens it costs. That $6 latte? That's 1.3 million Claude Sonnet input tokens.
+Point your camera at any price tag. Find out what it costs in AI tokens.
+That $6 latte? 1.2 million Claude Sonnet tokens.
 
-## Quick Start
+→ **[Try it live](https://tokeneyes.dev)** — no signup, no backend, keys stay in your browser.
+
+---
+
+## What It Does
+
+1. **Snap or upload** a photo of anything with a price (tag, menu, receipt, screen)
+2. **Vision AI reads the price** — or guesses it if there's no visible tag
+3. **Instant token breakdown** across 10 AI models with a culturally-aware one-liner
+
+---
+
+## Supported Vision Providers
+
+Bring your own key — all have free tiers:
+
+| Provider | Free tier | Get key |
+|---|---|---|
+| Google Gemini | Yes (Gemini 2.5 Flash) | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
+| OpenRouter | Yes (Qwen VL, Gemma 3, Llama Vision, more) | [openrouter.ai/keys](https://openrouter.ai/keys) |
+| Cloudflare Workers AI | Yes (Llama 4, Gemma 4) | [dash.cloudflare.com](https://dash.cloudflare.com) |
+
+---
+
+## Pricing Models
+
+| Model | Input $/1M | Output $/1M |
+|---|---|---|
+| Claude Sonnet 4.6 | $3.00 | $15.00 |
+| Claude Opus 4.6 | $5.00 | $25.00 |
+| Claude Haiku 4.5 | $1.00 | $5.00 |
+| Gemini 2.5 Pro | $1.25 | $10.00 |
+| Gemini 2.5 Flash | $0.30 | $2.50 |
+| Gemini 2.5 Flash-Lite | $0.10 | $0.40 |
+| GPT-5 | $1.25 | $10.00 |
+| GPT-4o | $2.50 | $10.00 |
+| o4-mini | $1.10 | $4.40 |
+| GPT-4o Mini | $0.15 | $0.60 |
+
+---
+
+## Python CLI
 
 ```bash
 pip install -e .
 
-# Pure math mode (no API key needed)
-tokenprice --price 5.99
-
-# With Gemini vision (free API key)
-export GEMINI_API_KEY=your-key-here
-tokenprice photo.jpg           # read price from image
-tokenprice shoe.jpg --guess    # AI estimates the price
+tokeneyes photo.jpg              # read price from image
+tokeneyes shoe.jpg --guess       # AI guesses the price (no visible tag)
+tokeneyes --price 5.99           # skip vision, just convert
+tokeneyes --list-models          # show all supported models
+tokeneyes-web                    # start local web UI (port 8000)
 ```
 
-## What It Does
+Requires `GEMINI_API_KEY` or `OPENROUTER_API_KEY` in your environment or a `.env` file.
 
-1. **Reads** a price from an image (OCR via Gemini Vision), or **guesses** the price of any object
-2. **Converts** the dollar amount into token counts for popular AI models
-3. **Displays** a fun breakdown showing how many tokens, requests, and AI-generations your purchase is worth
+---
 
-## Usage
+## Self-Host the Web App
+
+The web app is a single static HTML file — no build step, no server.
 
 ```bash
-tokenprice photo.jpg                        # read price from image
-tokenprice shoe.jpg --guess                 # let AI guess the price
-tokenprice --price 49.99                    # just convert a dollar amount
-tokenprice receipt.jpg -m claude-sonnet-4-6 # specific model only
-tokenprice --list-models                    # see all supported models
+git clone https://github.com/disc0nnctd/TokenEyes
+cd TokenEyes/cloudflare
+python3 -m http.server 3000
 ```
 
-## Supported Models
+Deploy to Cloudflare Pages by dragging the `cloudflare/` folder to [pages.cloudflare.com](https://pages.cloudflare.com).
+See [cloudflare/DEPLOY.md](./cloudflare/DEPLOY.md) for full instructions including optional free quip generation via Workers AI.
 
-| Model | Input $/1M | Output $/1M | Reasoning $/1M |
-|-------|-----------|-------------|-----------------|
-| Claude Sonnet 4.6 | $3.00 | $15.00 | $3.00 |
-| Claude Opus 4.6 | $15.00 | $75.00 | $15.00 |
-| Claude Haiku 4.5 | $0.80 | $4.00 | $0.80 |
-| Gemini 2.5 Flash | $0.15 | $0.60 | $0.25 |
-| Gemini 2.5 Pro | $1.25 | $10.00 | $1.25 |
-| GPT-4o | $2.50 | $10.00 | - |
-| GPT-4o Mini | $0.15 | $0.60 | - |
+---
 
-## API Key
+## Privacy
 
-Get a free Gemini API key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey). Set it as:
+- Keys are **memory-only** in your browser — gone when you close the tab
+- All API calls go **directly from your browser** to the provider — no TokenEyes server in the path
+- Nothing is logged or stored by us
 
-```bash
-export GEMINI_API_KEY=your-key-here
-# or create a .env file
-```
-
-The `--price` flag works without any API key.
-
-## Roadmap
-
-- [ ] Web UI (drag-drop images)
-- [ ] Receipt mode (itemize a full receipt)
-- [ ] Reverse mode ("I have $5 of API credit, what can I buy IRL?")
-- [ ] Browser extension
-- [ ] Shareable meme cards
-- [ ] Multi-currency support
-- [ ] Live pricing from provider APIs
+---
 
 ## License
 

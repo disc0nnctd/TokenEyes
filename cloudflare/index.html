@@ -113,6 +113,14 @@
     }
     .glass-input:focus { border-color:rgba(99,102,241,0.5);background:rgba(255,255,255,0.08); }
     .glass-input::placeholder { color:var(--muted);font-family:'Inter',sans-serif; }
+    select.glass-input {
+      appearance:none;-webkit-appearance:none;cursor:pointer;font-family:'Inter',sans-serif;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23ffffff50' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;
+    }
+    select.glass-input option { background:#1a1a2e;color:#f4f4ff; }
+    .model-select-row { display:flex;flex-direction:column;gap:4px; }
+    .model-select-label { font-size:0.68rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted); }
     .icon-btn {
       width:40px;height:40px;background:var(--glass);border:1px solid var(--border);
       border-radius:var(--r-sm);color:var(--muted);cursor:pointer;font-size:1rem;
@@ -259,6 +267,39 @@
 
     footer { position:relative;z-index:1;padding:16px;font-size:0.7rem;color:var(--muted);text-align:center; }
     footer a { color:var(--muted); }
+
+    /* ── Mode toggle ── */
+    .header-actions { display:flex;align-items:center;gap:8px; }
+    .mode-toggle-wrap {
+      position:relative;display:flex;align-items:center;gap:7px;
+      background:var(--glass);border:1px solid var(--border);border-radius:99px;
+      padding:5px 10px 5px 8px;cursor:default;
+    }
+    .mode-toggle-wrap:hover .mode-tooltip { opacity:1;pointer-events:auto;transform:translateY(0); }
+    .mode-label { font-size:0.72rem;font-weight:600;color:var(--muted);white-space:nowrap;user-select:none; }
+    .mode-label.active { color:var(--text); }
+    /* toggle switch */
+    .toggle-track {
+      position:relative;width:34px;height:18px;border-radius:99px;cursor:pointer;
+      background:rgba(99,102,241,0.35);border:1px solid rgba(99,102,241,0.4);
+      transition:background 0.2s,border-color 0.2s;flex-shrink:0;
+    }
+    .toggle-track.simple { background:rgba(255,255,255,0.08);border-color:var(--border); }
+    .toggle-thumb {
+      position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;
+      background:#a5b4fc;transition:transform 0.2s,background 0.2s;
+    }
+    .toggle-track.simple .toggle-thumb { transform:translateX(16px);background:var(--muted); }
+    /* tooltip */
+    .mode-tooltip {
+      position:absolute;top:calc(100% + 10px);right:0;width:220px;
+      background:#1a1a2e;border:1px solid var(--border2);border-radius:10px;
+      padding:10px 13px;font-size:0.72rem;color:var(--muted);line-height:1.6;
+      opacity:0;pointer-events:none;transform:translateY(-4px);
+      transition:opacity 0.18s,transform 0.18s;z-index:100;
+    }
+    .mode-tooltip strong { color:var(--text);display:block;margin-bottom:3px; }
+    .mode-tooltip .tip-divider { height:1px;background:var(--border);margin:6px 0; }
   </style>
 </head>
 <body>
@@ -276,7 +317,24 @@
       <div class="logo">TOKENEYES</div>
       <div class="tagline">everything has a token price</div>
     </div>
-    <button class="privacy-btn" id="privacy-toggle" aria-expanded="false">🔒 Privacy</button>
+    <div class="header-actions">
+      <!-- Mode toggle: Normal (default) ↔ Simple -->
+      <div class="mode-toggle-wrap" id="mode-toggle-wrap" title="">
+        <span class="mode-label active" id="lbl-normal">Normal</span>
+        <div class="toggle-track" id="mode-track" role="switch" aria-checked="false" tabindex="0">
+          <div class="toggle-thumb"></div>
+        </div>
+        <span class="mode-label" id="lbl-simple">Simple</span>
+        <div class="mode-tooltip">
+          <strong>Normal mode</strong>
+          Culturally-aware quips tuned to your region — references what's trending, local memes, social media vibes. Uses a tiny bit of your API quota.
+          <div class="tip-divider"></div>
+          <strong>Simple mode</strong>
+          Plain one-liners generated free via Gemma on our end. No API key used for the quip — fast and efficient.
+        </div>
+      </div>
+      <button class="privacy-btn" id="privacy-toggle" aria-expanded="false">🔒 Privacy</button>
+    </div>
   </header>
 
   <div class="glass-card privacy-drawer" id="privacy-drawer">
@@ -296,8 +354,32 @@
       <button class="pill" data-group="provider" data-val="openrouter">OpenRouter</button>
       <button class="pill" data-group="provider" data-val="cloudflare">Cloudflare AI</button>
     </div>
+    <div class="input-row model-select-row" id="openai-config-row" style="display:none">
+      <span class="model-select-label">Vision model</span>
+      <select class="glass-input" id="or-model-input">
+      </select>
+    </div>
+    <!-- Gemini: model selector -->
+    <div class="input-row model-select-row" id="gemini-model-row">
+      <span class="model-select-label">Vision model</span>
+      <select class="glass-input" id="gemini-model-input">
+        <option value="gemini-2.5-flash">Gemini 2.5 Flash — fast &amp; cheap (default)</option>
+        <option value="gemini-2.5-pro">Gemini 2.5 Pro — best quality</option>
+        <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro Preview — latest</option>
+      </select>
+    </div>
+    <!-- Cloudflare: account ID + vision model selector -->
     <div class="input-row" id="cf-account-row" style="display:none">
       <input class="glass-input" id="cf-account-input" type="text" autocomplete="off" spellcheck="false" placeholder="Cloudflare Account ID" />
+    </div>
+    <div class="input-row model-select-row" id="cf-model-row" style="display:none">
+      <span class="model-select-label">Vision model</span>
+      <select class="glass-input" id="cf-model-input">
+        <option value="@cf/meta/llama-3.2-11b-vision-instruct">Llama 3.2 11B Vision — reliable default</option>
+        <option value="@cf/meta/llama-4-scout-17b">Llama 4 Scout 17B — faster, multimodal</option>
+        <option value="@cf/google/gemma-4-26b-a4b-it">Gemma 4 26B — latest Google model</option>
+        <option value="@cf/mistralai/mistral-small-3.1-24b">Mistral Small 3.1 24B — compact &amp; capable</option>
+      </select>
     </div>
     <div class="input-row">
       <input class="glass-input" id="api-key-input" type="password" autocomplete="off" spellcheck="false" placeholder="Paste API key…" />
@@ -400,13 +482,19 @@
 
 // ── Pricing ───────────────────────────────────────────────────────────────────
 const MODELS = [
-  { id:'claude-sonnet-4-6', name:'Claude Sonnet 4.6', input:3.00,  output:15.00, reasoning:3.00  },
-  { id:'claude-opus-4-6',   name:'Claude Opus 4.6',   input:15.00, output:75.00, reasoning:15.00 },
-  { id:'claude-haiku-4-5',  name:'Claude Haiku 4.5',  input:0.80,  output:4.00,  reasoning:0.80  },
-  { id:'gemini-2.5-flash',  name:'Gemini 2.5 Flash',  input:0.15,  output:0.60,  reasoning:0.25  },
-  { id:'gemini-2.5-pro',    name:'Gemini 2.5 Pro',    input:1.25,  output:10.00, reasoning:1.25  },
-  { id:'gpt-4o',            name:'GPT-4o',            input:2.50,  output:10.00, reasoning:null  },
-  { id:'gpt-4o-mini',       name:'GPT-4o Mini',       input:0.15,  output:0.60,  reasoning:null  },
+  // Anthropic
+  { id:'claude-sonnet-4-6',      name:'Claude Sonnet 4.6',      input:3.00,  output:15.00, reasoning:3.00  },
+  { id:'claude-opus-4-6',        name:'Claude Opus 4.6',        input:5.00,  output:25.00, reasoning:5.00  },
+  { id:'claude-haiku-4-5',       name:'Claude Haiku 4.5',       input:1.00,  output:5.00,  reasoning:1.00  },
+  // Google
+  { id:'gemini-2.5-pro',         name:'Gemini 2.5 Pro',         input:1.25,  output:10.00, reasoning:1.25  },
+  { id:'gemini-2.5-flash',       name:'Gemini 2.5 Flash',       input:0.30,  output:2.50,  reasoning:0.25  },
+  { id:'gemini-2.5-flash-lite',  name:'Gemini 2.5 Flash-Lite',  input:0.10,  output:0.40,  reasoning:null  },
+  // OpenAI
+  { id:'gpt-5',                  name:'GPT-5',                  input:1.25,  output:10.00, reasoning:null  },
+  { id:'gpt-4o',                 name:'GPT-4o',                 input:2.50,  output:10.00, reasoning:null  },
+  { id:'o4-mini',                name:'o4-mini',                input:1.10,  output:4.40,  reasoning:1.10  },
+  { id:'gpt-4o-mini',            name:'GPT-4o Mini',            input:0.15,  output:0.60,  reasoning:null  },
 ];
 
 function calcTokens(usd, m) {
@@ -489,17 +577,34 @@ const GUESS_PROMPT = `Look at this image. Identify the main object. Estimate its
 Return ONLY valid JSON (no markdown):
 {"item":"<short description>","price":<number>,"currency":"USD","price_usd":<number>,"confidence":"estimated"}`;
 
+// Simple mode: plain, no cultural context
 const quipPrompt = (item,price,tokens,model) =>
   `A ${item} ($${price.toFixed(2)}) = ${tokens.toLocaleString()} ${model} tokens. Write ONE devastatingly funny one-liner (under 100 chars). No quotes, just the line.`;
 
+// Normal mode: culturally-aware, uses detected country
+const normalQuipPrompt = (item,price,tokens,model,country) => {
+  const loc = country ? `The user is from ${country}.` : 'The user is somewhere on earth.';
+  const ref = country
+    ? `Reference something ${country} culture, current internet memes, or what ${country} social media would say about this purchase.`
+    : 'Reference current internet culture, memes, or what social media would roast this with.';
+  return `You're a sharp, culturally-tuned commentator. ${loc}\nA ${item} costs $${price.toFixed(2)} — that's ${tokens.toLocaleString()} ${model} tokens.\n${ref}\nONE brutal, funny one-liner. Under 100 chars. No quotes.`;
+};
+
 // ── State ─────────────────────────────────────────────────────────────────────
-let provider='gemini', mode='read', imageB64=null, imageMime='image/jpeg';
+const OPENROUTER_BASE_URL='https://openrouter.ai/api/v1';
+let provider='gemini', orModel='openrouter/auto';
+let geminiVisionModel='gemini-2.5-flash', cfVisionModel='@cf/meta/llama-3.2-11b-vision-instruct';
+let mode='read', imageB64=null, imageMime='image/jpeg';
 let camStream=null, facingMode='environment', lastResult=null;
+let simpleMode=false, detectedCountry=null;
 
 // ── DOM ───────────────────────────────────────────────────────────────────────
 const $=id=>document.getElementById(id);
 const apiKeyInput=$('api-key-input'), cfAccountInput=$('cf-account-input');
 const cfAccountRow=$('cf-account-row'), keyHint=$('key-hint');
+const openaiConfigRow=$('openai-config-row'), orModelInput=$('or-model-input');
+const geminiModelRow=$('gemini-model-row'), geminiModelInput=$('gemini-model-input');
+const cfModelRow=$('cf-model-row'), cfModelInput=$('cf-model-input');
 const videoEl=$('video-preview'), canvas=$('snapshot-canvas'), capturedImg=$('captured-img');
 const analyzeBtn=$('analyze-btn'), statusBar=$('status-bar'), errorBox=$('error-box');
 const resultsEl=$('results'), bentoGrid=$('bento-grid');
@@ -510,12 +615,49 @@ $('privacy-toggle').addEventListener('click',function(){
   this.setAttribute('aria-expanded',String(o));
 });
 
+// ── Mode toggle (Normal ↔ Simple) ─────────────────────────────────────────────
+function applyMode(){
+  const track=$('mode-track');
+  track.classList.toggle('simple',simpleMode);
+  track.setAttribute('aria-checked',String(!simpleMode));
+  $('lbl-normal').classList.toggle('active',!simpleMode);
+  $('lbl-simple').classList.toggle('active',simpleMode);
+}
+$('mode-track').addEventListener('click',()=>{ simpleMode=!simpleMode; applyMode(); });
+$('mode-track').addEventListener('keydown',e=>{
+  if(e.key===' '||e.key==='Enter'){e.preventDefault();simpleMode=!simpleMode;applyMode();}
+});
+applyMode();
+
+// Fetch country once in the background — used by Normal mode quip prompts
+(async()=>{
+  try{
+    const r=await fetch('/country');
+    if(r.ok){const d=await r.json();detectedCountry=d.country||null;}
+  }catch{}
+})();
+
 // ── Pills ─────────────────────────────────────────────────────────────────────
 const HINTS = {
-  gemini:     'Free key → <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>',
-  openrouter: 'Free key → <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a>',
+  gemini:     'Gemini 2.5 Flash is the current default. Free key → <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>',
+  openrouter: 'Use any OpenAI-compatible model card or endpoint. Free key → <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a>',
   cloudflare: 'Token → <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noopener">dash.cloudflare.com/profile/api-tokens</a> · Account ID above',
 };
+const OPENROUTER_MODELS = [
+  { id: 'openrouter/auto',                                 name: 'Auto — OpenRouter picks best free model' },
+  { id: 'qwen/qwen2.5-vl-72b-instruct:free',              name: 'Qwen 2.5 VL 72B — best free vision' },
+  { id: 'qwen/qwen2.5-vl-32b-instruct:free',              name: 'Qwen 2.5 VL 32B (free)' },
+  { id: 'google/gemma-3-27b-it:free',                     name: 'Gemma 3 27B (free)' },
+  { id: 'google/gemma-3-12b-it:free',                     name: 'Gemma 3 12B (free)' },
+  { id: 'meta-llama/llama-3.2-11b-vision-instruct:free',  name: 'Llama 3.2 11B Vision (free)' },
+  { id: 'mistralai/mistral-small-3.1-24b-instruct:free',  name: 'Mistral Small 3.1 24B (free)' },
+  { id: 'moonshotai/kimi-vl-a3b-thinking:free',           name: 'Kimi VL A3B Thinking (free)' },
+];
+// Gemini vision model is now dynamic (geminiVisionModel state var), not a constant
+orModelInput.innerHTML = OPENROUTER_MODELS.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+orModelInput.value = OPENROUTER_MODELS[0].id; orModel = OPENROUTER_MODELS[0].id;
+// Gemini is active by default — show its model selector
+geminiModelRow.style.display='flex';
 document.querySelectorAll('.pill[data-group]').forEach(btn=>{
   btn.addEventListener('click',()=>{
     const g=btn.dataset.group;
@@ -524,7 +666,10 @@ document.querySelectorAll('.pill[data-group]').forEach(btn=>{
     if(g==='provider'){
       provider=btn.dataset.val;
       keyHint.innerHTML=HINTS[provider]||'';
+      openaiConfigRow.style.display=provider==='openrouter'?'flex':'none';
       cfAccountRow.style.display=provider==='cloudflare'?'flex':'none';
+      cfModelRow.style.display=provider==='cloudflare'?'flex':'none';
+      geminiModelRow.style.display=provider==='gemini'?'flex':'none';
       apiKeyInput.placeholder=provider==='cloudflare'?'Workers AI API Token':'Paste API key…';
       checkReady();
     }
@@ -540,6 +685,9 @@ $('key-toggle-btn').addEventListener('click',()=>{
 });
 apiKeyInput.addEventListener('input',checkReady);
 cfAccountInput.addEventListener('input',checkReady);
+orModelInput.addEventListener('change',()=>{ orModel = orModelInput.value; });
+geminiModelInput.addEventListener('change',()=>{ geminiVisionModel = geminiModelInput.value; });
+cfModelInput.addEventListener('change',()=>{ cfVisionModel = cfModelInput.value; });
 function checkReady(){
   analyzeBtn.disabled=!(imageB64&&apiKeyInput.value.trim()&&(provider!=='cloudflare'||cfAccountInput.value.trim()));
 }
@@ -592,7 +740,7 @@ async function analyze(){
     let pd;
     if(provider==='gemini')          pd=await callGemini(key,imageB64,imageMime,prompt);
     else if(provider==='cloudflare') pd=await callCloudflareAI(cfAccountInput.value.trim(),key,imageB64,imageMime,prompt);
-    else                             pd=await callOpenRouter(key,imageB64,imageMime,prompt);
+    else                             pd=await callOpenRouter(key,orModel,imageB64,imageMime,prompt);
     if(!pd?.price_usd){showError(pd?.item?`Couldn't find a price (saw: "${pd.item}"). Try Guess mode.`:'No price found. Try Guess mode or a clearer image.');return;}
     setStatus('Generating breakdown…');lastResult=pd;
     const quip=await generateQuip(key,pd);
@@ -603,41 +751,41 @@ async function analyze(){
 
 // ── Gemini ────────────────────────────────────────────────────────────────────
 async function callGemini(key,b64,mime,prompt){
-  const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(key)}`,
+  const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiVisionModel}:generateContent?key=${encodeURIComponent(key)}`,
     {method:'POST',headers:{'Content-Type':'application/json'},
      body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:mime,data:b64}},{text:prompt}]}],generationConfig:{temperature:0.1,maxOutputTokens:1024}})});
   if(!r.ok){const e=await r.json().catch(()=>({}));throw Object.assign(new Error(e?.error?.message||`Gemini error (${r.status})`),{name:'ApiError'});}
   const d=await r.json();return parseJSON(d?.candidates?.[0]?.content?.parts?.[0]?.text??'');
 }
 async function callGeminiText(key,prompt){
-  const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(key)}`,
+  const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiVisionModel}:generateContent?key=${encodeURIComponent(key)}`,
     {method:'POST',headers:{'Content-Type':'application/json'},
      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.9,maxOutputTokens:256}})});
   if(!r.ok)return null;const d=await r.json();return(d?.candidates?.[0]?.content?.parts?.[0]?.text??'').trim();
 }
 
 // ── OpenRouter ────────────────────────────────────────────────────────────────
-async function callOpenRouter(key,b64,mime,prompt){
-  const r=await fetch('https://openrouter.ai/api/v1/chat/completions',
+async function callOpenRouter(key,model,b64,mime,prompt){
+  const r=await fetch(`${OPENROUTER_BASE_URL}/chat/completions`,
     {method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${key}`,'HTTP-Referer':location.origin,'X-Title':'TokenEyes'},
-     body:JSON.stringify({model:'google/gemini-2.0-flash-exp:free',messages:[{role:'user',content:[{type:'image_url',image_url:{url:`data:${mime};base64,${b64}`}},{type:'text',text:prompt}]}],max_tokens:1024,temperature:0.1})});
+     body:JSON.stringify({model,messages:[{role:'user',content:[{type:'image_url',image_url:{url:`data:${mime};base64,${b64}`}},{type:'text',text:prompt}]}],max_tokens:1024,temperature:0.1})});
   if(!r.ok){const e=await r.json().catch(()=>({}));throw Object.assign(new Error(e?.error?.message||`OpenRouter error (${r.status})`),{name:'ApiError'});}
   const d=await r.json();return parseJSON(d?.choices?.[0]?.message?.content??'');
 }
-async function callOpenRouterText(key,prompt){
-  const r=await fetch('https://openrouter.ai/api/v1/chat/completions',
+async function callOpenRouterText(key,model,prompt){
+  const r=await fetch(`${OPENROUTER_BASE_URL}/chat/completions`,
     {method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${key}`,'HTTP-Referer':location.origin,'X-Title':'TokenEyes'},
-     body:JSON.stringify({model:'google/gemini-2.0-flash-exp:free',messages:[{role:'user',content:prompt}],max_tokens:256,temperature:0.9})});
+     body:JSON.stringify({model,messages:[{role:'user',content:prompt}],max_tokens:256,temperature:0.9})});
   if(!r.ok)return null;const d=await r.json();return(d?.choices?.[0]?.message?.content??'').trim();
 }
 
 // ── Cloudflare Workers AI ─────────────────────────────────────────────────────
-const CF_VIS='@cf/meta/llama-3.2-11b-vision-instruct';
+// CF vision model is dynamic (cfVisionModel state var); text model for quips stays fixed
 const CF_TXT='@cf/meta/llama-3.1-8b-instruct';
 const cfUrl=(acct,model)=>`https://api.cloudflare.com/client/v4/accounts/${acct}/ai/run/${encodeURIComponent(model)}`;
 
 async function callCloudflareAI(acct,token,b64,mime,prompt){
-  const r=await fetch(cfUrl(acct,CF_VIS),
+  const r=await fetch(cfUrl(acct,cfVisionModel),
     {method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
      body:JSON.stringify({messages:[{role:'user',content:[{type:'image_url',image_url:{url:`data:${mime};base64,${b64}`}},{type:'text',text:prompt}]}],max_tokens:1024})});
   if(!r.ok){const e=await r.json().catch(()=>({}));throw Object.assign(new Error(e?.errors?.[0]?.message||`CF AI error (${r.status})`),{name:'ApiError'});}
@@ -662,12 +810,30 @@ function parseJSON(text){
 async function generateQuip(key,pd){
   if(!pd?.price_usd)return null;
   const{tot}=calcTokens(pd.price_usd,MODELS[0]);
-  const p=quipPrompt(pd.item,pd.price_usd,tot,MODELS[0].name);
+
+  if(simpleMode){
+    // Simple: free Gemma via Pages Function → KV pool → static pool. No user key used.
+    const p=quipPrompt(pd.item,pd.price_usd,tot,MODELS[0].name);
+    try{
+      const r=await fetch('/advisor',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:p})});
+      if(r.ok){const d=await r.json();if(d?.text)return d.text;}
+    }catch{}
+    return null; // advisor handles all fallbacks internally; null = hide quip card
+  }
+
+  // Normal: culturally-aware quip via user's provider (tiny call, ~100 output tokens)
+  const p=normalQuipPrompt(pd.item,pd.price_usd,tot,MODELS[0].name,detectedCountry);
   try{
     if(provider==='gemini')      return await callGeminiText(key,p);
     if(provider==='cloudflare') return await callCloudflareAIText(cfAccountInput.value.trim(),key,p);
-    return await callOpenRouterText(key,p);
-  }catch{return null;}
+    return await callOpenRouterText(key,orModel,p);
+  }catch{}
+  // Normal mode fallback: try free advisor if user's provider failed
+  try{
+    const r=await fetch('/advisor',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:quipPrompt(pd.item,pd.price_usd,tot,MODELS[0].name)})});
+    if(r.ok){const d=await r.json();if(d?.text)return d.text;}
+  }catch{}
+  return null;
 }
 
 // ── Render ────────────────────────────────────────────────────────────────────
@@ -676,7 +842,11 @@ function renderResults(pd,quip){
   $('r-price').textContent=`$${Number(pd.price_usd).toFixed(2)}`;
   const badge=$('r-badge'),isEst=pd.confidence==='estimated';
   badge.textContent=isEst?'estimated':'read';badge.className='chip '+(isEst?'chip-est':'chip-read');
-  $('r-via').textContent=provider;
+  // Show provider + selected model in the via chip
+  const viaModel = provider==='gemini' ? geminiVisionModel
+    : provider==='cloudflare' ? cfVisionModel.split('/').pop()
+    : orModel.split('/').pop().replace(':free','');
+  $('r-via').textContent=`${provider} · ${viaModel}`;
 
   const best=MODELS[0];const{tot}=calcTokens(pd.price_usd,best);
   $('hero-label').textContent=best.name.toUpperCase()+' TOKENS';

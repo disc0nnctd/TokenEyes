@@ -1,5 +1,21 @@
 # TokenEyes — Cloudflare Deployment
 
+## Security model (important for self-hosters)
+
+- **User API keys** — entered in-browser, memory only, never sent to any TokenEyes server.
+  All vision calls go directly from the user's browser to Gemini / OpenRouter / CF Workers AI.
+- **Your Workers AI binding** — used only by the `/advisor` and `/country` Pages Functions.
+  `/advisor` generates quip text (no image data, no user keys). `/country` returns an ISO country code.
+  Neither function receives user API keys or image data.
+- **KV namespace** — stores generated quip text strings only. No user data, no images, no keys.
+- **Rate limiting** — the `/advisor` function is naturally rate-limited by Workers AI free tier
+  (100k requests/day). If you want additional protection, add a Cloudflare Rate Limiting rule
+  on `POST /advisor` in your Pages project settings.
+- **No account ID or credentials in code** — your CF Account ID is a dashboard-only binding,
+  never committed to the repo. The repo is safe to open-source as-is.
+
+---
+
 ## Local preview
 
 No build step needed. Just open `index.html` directly:
@@ -61,13 +77,43 @@ Free SSL included.
 
 ---
 
-## No Cloudflare Worker needed
+## Free advisor quips via Pages Functions + Workers AI
 
-All LLM calls go **directly from the user's browser** to:
+The `functions/advisor.js` Pages Function generates the funny quip text using
+**Gemma 3 12B** on Workers AI — completely free, no user key consumed.
+
+**Setup (Settings → Functions in your Pages project):**
+
+1. **AI binding** — Variable name: `AI` (Workers AI — runs Gemma inference)
+2. **KV binding** — Create a KV namespace (e.g. `tokeneyes-quips`), then bind it with variable name: `QUIPS_KV`
+
+Both are optional and degrade gracefully:
+
+| AI binding | KV binding | Behaviour |
+|---|---|---|
+| ✅ | ✅ | Gemma generates quip → saves to pool → reuses pool when quota hits |
+| ✅ | ❌ | Gemma generates quip, pool not saved |
+| ❌ | ✅ | Serves from saved pool only |
+| ❌ | ❌ | Falls back to 25 hardcoded static quips (always works) |
+
+The `/advisor` endpoint is tried first by the browser; if it fails at any point the UI silently falls back to the user's chosen vision provider. No downtime either way.
+
+> **Model:** `@hf/google/gemma-3-12b-it` — update `ADVISOR_MODEL` in
+> `functions/advisor.js` once Gemma 4 appears in the [Workers AI catalog](https://developers.cloudflare.com/workers-ai/models/).
+
+> **Only the quip text is generated here.** Vision (price extraction from the image)
+> always uses the user's own API key client-side — it never touches this function.
+
+---
+
+## No backend for vision
+
+All vision/price calls go **directly from the user's browser** to:
 - `https://generativelanguage.googleapis.com` (Gemini)
 - `https://openrouter.ai` (OpenRouter)
+- `https://api.cloudflare.com` (Cloudflare Workers AI — user's own key)
 
-API keys are **never sent to any TokenEyes server**. There is no backend.
+API keys are **never sent to any TokenEyes server**.
 
 ---
 

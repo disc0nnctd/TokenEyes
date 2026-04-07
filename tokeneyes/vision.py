@@ -1,4 +1,4 @@
-"""Vision backends for price extraction: Gemini and OpenRouter."""
+"""Vision backends for price extraction: Gemini and OpenAI-compatible hosts."""
 
 from __future__ import annotations
 
@@ -8,13 +8,18 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
-# Free OpenRouter vision models to try in order
+# Free OpenRouter vision models (updated April 2026).
+# openrouter/auto routes to the best available free multimodal model automatically.
 OPENROUTER_FREE_MODELS = [
-    "google/gemini-2.0-flash-exp:free",
-    "meta-llama/llama-4-scout:free",
-    "qwen/qwen2-vl-7b-instruct:free",
+    "openrouter/auto",
+    "qwen/qwen2.5-vl-72b-instruct:free",
+    "qwen/qwen2.5-vl-32b-instruct:free",
+    "google/gemma-3-27b-it:free",
+    "meta-llama/llama-3.2-11b-vision-instruct:free",
+    "mistralai/mistral-small-3.1-24b-instruct:free",
 ]
 OPENROUTER_DEFAULT_MODEL = OPENROUTER_FREE_MODELS[0]
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 GEMINI_MODEL = "gemini-2.5-flash"
 
 READ_PROMPT = """\
@@ -38,6 +43,37 @@ GUESS_PROMPT = """\
 Look at this image. Identify the main object or product shown.
 
 Estimate its typical retail price in USD based on what it appears to be.
+
+Return JSON (no markdown fencing):
+{
+  "item": "<short description>",
+  "price": <estimated price as float>,
+  "currency": "USD",
+  "price_usd": <same as price>,
+  "confidence": "estimated"
+}
+"""
+
+TEXT_READ_PROMPT = """\
+Read the user-provided text below. Extract a clearly stated price if one is present.
+
+Return JSON (no markdown fencing):
+{
+  "item": "<short description of the item>",
+  "price": <numeric price as a float>,
+  "currency": "<3-letter currency code, e.g. USD, EUR, GBP>",
+  "price_usd": <price converted to USD (use approximate current rates)>,
+  "confidence": "read"
+}
+
+If no explicit price is present, return:
+{"item": "<what is described>", "price": null, "currency": null, "price_usd": null, "confidence": "none"}
+"""
+
+TEXT_GUESS_PROMPT = """\
+Read the user-provided text below. Identify the main item or product being described.
+
+Estimate its typical retail price in USD based on that description.
 
 Return JSON (no markdown fencing):
 {
@@ -83,14 +119,28 @@ def _openrouter_key() -> str | None:
     return _get_key("OPENROUTER_API_KEY", "OpenRouterKey", "OPENROUTER_KEY")
 
 
+def _openai_compatible_key() -> str | None:
+    return _get_key(
+        "OPENROUTER_API_KEY",
+        "OPENAI_API_KEY",
+        "OPENAI_COMPATIBLE_API_KEY",
+        "OpenRouterKey",
+        "OPENROUTER_KEY",
+    )
+
+
+def _backend_label(model: str) -> str:
+    return f"openrouter/{model}"
+
+
 def detect_backend() -> str:
     """Auto-detect which backend to use based on available API keys."""
     if _gemini_key():
         return "gemini"
-    if _openrouter_key():
+    if _openai_compatible_key():
         return "openrouter"
     raise RuntimeError(
-        "No API key found. Set GEMINI_API_KEY or OPENROUTER_API_KEY.\n"
+        "No API key found. Set GEMINI_API_KEY or an OpenAI-compatible API key.\n"
         "  Gemini (free): https://aistudio.google.com/apikey\n"
         "  OpenRouter (free models available): https://openrouter.ai/keys"
     )
@@ -126,6 +176,17 @@ def _query_gemini(source: str, prompt: str) -> VisionResult:
     return _parse_result(response.text, backend="gemini")
 
 
+def _query_gemini_text(text: str, prompt: str) -> VisionResult:
+    from google.genai import types
+    client = _gemini_client()
+    response = client.models.generate_content(
+        model=GEMINI_MODEL,
+        contents=[f"{prompt}\n\nUser text:\n{text}"],
+        config=types.GenerateContentConfig(temperature=0.1, max_output_tokens=1024),
+    )
+    return _parse_result(response.text, backend="gemini")
+
+
 def _quip_gemini(prompt: str) -> str:
     from google.genai import types
     client = _gemini_client()
@@ -137,7 +198,7 @@ def _quip_gemini(prompt: str) -> str:
     return response.text.strip()
 
 
-# ── OpenRouter backend ────────────────────────────────────────────────────────
+# ── OpenAI-compatible backend ────────────────────────────────────────────────
 
 def _image_to_data_url(source: str) -> str:
     """Convert a local file or URL to a base64 data URL for the OpenAI messages API."""
@@ -152,12 +213,13 @@ def _image_to_data_url(source: str) -> str:
     return source
 
 
-def _query_openrouter(source: str, prompt: str, model: str) -> VisionResult:
+def _openrouter_client():
     from openai import OpenAI
-    client = OpenAI(
-        api_key=_openrouter_key(),
-        base_url="https://openrouter.ai/api/v1",
-    )
+    return OpenAI(api_key=_openai_compatible_key(), base_url=OPENROUTER_BASE_URL)
+
+
+def _query_openrouter(source: str, prompt: str, model: str) -> VisionResult:
+    client = _openrouter_client()
     image_url = _image_to_data_url(source)
     response = client.chat.completions.create(
         model=model,
@@ -172,15 +234,23 @@ def _query_openrouter(source: str, prompt: str, model: str) -> VisionResult:
         temperature=0.1,
     )
     text = response.choices[0].message.content or ""
-    return _parse_result(text, backend=f"openrouter/{model}")
+    return _parse_result(text, backend=_backend_label(model))
+
+
+def _query_openrouter_text(text: str, prompt: str, model: str) -> VisionResult:
+    client = _openrouter_client()
+    response = client.chat.completions.create(
+        model=model,
+        messages=[{"role": "user", "content": f"{prompt}\n\nUser text:\n{text}"}],
+        max_tokens=1024,
+        temperature=0.1,
+    )
+    content = response.choices[0].message.content or ""
+    return _parse_result(content, backend=_backend_label(model))
 
 
 def _quip_openrouter(prompt: str, model: str) -> str:
-    from openai import OpenAI
-    client = OpenAI(
-        api_key=_openrouter_key(),
-        base_url="https://openrouter.ai/api/v1",
-    )
+    client = _openrouter_client()
     response = client.chat.completions.create(
         model=model,
         messages=[{"role": "user", "content": prompt}],
@@ -227,6 +297,16 @@ def guess_price(source: str, backend: str = "auto", or_model: str = OPENROUTER_D
     return _dispatch(source, GUESS_PROMPT, backend, or_model)
 
 
+def read_price_text(text: str, backend: str = "auto", or_model: str = OPENROUTER_DEFAULT_MODEL) -> VisionResult:
+    """Extract an explicitly stated price from plain text."""
+    return _dispatch_text(text, TEXT_READ_PROMPT, backend, or_model)
+
+
+def guess_price_text(text: str, backend: str = "auto", or_model: str = OPENROUTER_DEFAULT_MODEL) -> VisionResult:
+    """Estimate the price of an item described in plain text."""
+    return _dispatch_text(text, TEXT_GUESS_PROMPT, backend, or_model)
+
+
 def _dispatch(source: str, prompt: str, backend: str, or_model: str) -> VisionResult:
     if backend == "auto":
         backend = detect_backend()
@@ -234,6 +314,16 @@ def _dispatch(source: str, prompt: str, backend: str, or_model: str) -> VisionRe
         return _query_gemini(source, prompt)
     if backend == "openrouter":
         return _query_openrouter(source, prompt, or_model)
+    raise ValueError(f"Unknown backend: {backend!r}. Use 'gemini' or 'openrouter'.")
+
+
+def _dispatch_text(text: str, prompt: str, backend: str, or_model: str) -> VisionResult:
+    if backend == "auto":
+        backend = detect_backend()
+    if backend == "gemini":
+        return _query_gemini_text(text, prompt)
+    if backend == "openrouter":
+        return _query_openrouter_text(text, prompt, or_model)
     raise ValueError(f"Unknown backend: {backend!r}. Use 'gemini' or 'openrouter'.")
 
 

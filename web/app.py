@@ -11,6 +11,8 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from tokeneyes.vision import OPENROUTER_DEFAULT_MODEL
+
 # Load env from project root
 load_dotenv(Path(__file__).parent.parent / ".env")
 load_dotenv(Path.home() / ".tokeneyes.env")
@@ -43,35 +45,57 @@ async def list_models():
 
 @app.post("/api/analyze")
 async def analyze(
-    image: UploadFile = File(...),
+    image: UploadFile | None = File(None),
     mode: str = Form("read"),          # "read" or "guess"
+    input_mode: str = Form("image"),   # "image" or "text"
+    text_input: str = Form(""),
     backend: str = Form("auto"),       # "auto", "gemini", "openrouter"
-    or_model: str = Form("google/gemini-2.0-flash-exp:free"),
+    or_model: str = Form(OPENROUTER_DEFAULT_MODEL),
     models: str = Form(""),            # comma-separated model IDs, empty = all
 ):
-    from tokeneyes.vision import read_price, guess_price, generate_quip
+    from tokeneyes.vision import (
+        generate_quip,
+        guess_price,
+        guess_price_text,
+        read_price,
+        read_price_text,
+    )
     from tokeneyes.pricing import convert_all
 
-    # Save upload to temp file
-    suffix = Path(image.filename or "upload.jpg").suffix or ".jpg"
-    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
-        tmp.write(await image.read())
-        tmp_path = tmp.name
-
-    try:
+    if input_mode == "text":
+        prompt_text = text_input.strip()
+        if not prompt_text:
+            raise HTTPException(status_code=400, detail="Provide text to analyze.")
         if mode == "guess":
-            result = guess_price(tmp_path, backend=backend, or_model=or_model)
+            result = guess_price_text(prompt_text, backend=backend, or_model=or_model)
         else:
-            result = read_price(tmp_path, backend=backend, or_model=or_model)
-    finally:
-        os.unlink(tmp_path)
+            result = read_price_text(prompt_text, backend=backend, or_model=or_model)
+    else:
+        if image is None:
+            raise HTTPException(status_code=400, detail="Provide an image to analyze.")
+
+        suffix = Path(image.filename or "upload.jpg").suffix or ".jpg"
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+            tmp.write(await image.read())
+            tmp_path = tmp.name
+
+        try:
+            if mode == "guess":
+                result = guess_price(tmp_path, backend=backend, or_model=or_model)
+            else:
+                result = read_price(tmp_path, backend=backend, or_model=or_model)
+        finally:
+            os.unlink(tmp_path)
 
     if result.price_usd is None:
         raise HTTPException(
             status_code=422,
             detail={
                 "error": "no_price",
-                "message": f"Could not find a price in this image (confidence: {result.confidence}). Try 'Guess mode' instead.",
+                "message": (
+                    f"Could not determine a price from this {input_mode} input "
+                    f"(confidence: {result.confidence}). Try 'Guess mode' instead."
+                ),
                 "item": result.item,
             },
         )
@@ -97,6 +121,7 @@ async def analyze(
         "price_usd": result.price_usd,
         "currency": result.currency,
         "confidence": result.confidence,
+        "input_mode": input_mode,
         "backend": result.backend,
         "quip": quip,
         "breakdowns": [

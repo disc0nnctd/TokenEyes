@@ -42,7 +42,7 @@ load_dotenv(Path.home() / "tokeneyes" / ".env")
     default=OPENROUTER_DEFAULT_MODEL,
     show_default=True,
     metavar="MODEL",
-    help=f"OpenRouter model for vision. Free options: {', '.join(OPENROUTER_FREE_MODELS)}",
+    help=f"OpenAI-compatible model for vision. Free options: {', '.join(OPENROUTER_FREE_MODELS)}",
 )
 @click.version_option(__version__)
 def main(
@@ -66,7 +66,7 @@ def main(
       tokeneyes shoe.jpg --guess                   # AI guesses the price
       tokeneyes --price 5.99                       # just convert $5.99
       tokeneyes photo.jpg --backend openrouter     # use OpenRouter free models
-      tokeneyes photo.jpg --or-model meta-llama/llama-4-scout:free
+      tokeneyes photo.jpg --or-model qwen/qwen3.6-plus:free
       tokeneyes receipt.jpg -m claude-sonnet-4-6
     """
     if show_models:
