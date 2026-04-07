@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>TokenEyes</title>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --surface2: #1c1c28;
+      --border: #2a2a3a;
+      --accent: #6366f1;
+      --accent2: #8b5cf6;
+      --green: #22c55e;
+      --yellow: #eab308;
+      --text: #f1f1f7;
+      --muted: #6b6b80;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── Header ── */
+    header {
+      width: 100%;
+      padding: 20px 24px 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      max-width: 680px;
+    }
+
+    .logo {
+      font-size: 1.1rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .tagline {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-left: auto;
+    }
+
+    /* ── Main ── */
+    main {
+      width: 100%;
+      max-width: 680px;
+      padding: 20px 16px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* ── Drop zone / camera zone ── */
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 36px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+      background: var(--surface);
+    }
+
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+    }
+
+    .drop-zone input[type=file] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .drop-icon {
+      font-size: 2.8rem;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .drop-zone h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .drop-zone p {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    /* Camera button (separate from file input — uses getUserMedia) */
+    .camera-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 14px;
+      padding: 8px 18px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      color: var(--text);
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      position: relative;
+      z-index: 1; /* above the transparent file input */
+    }
+
+    .camera-btn:hover {
+      background: var(--border);
+      border-color: var(--accent);
+    }
+
+    /* ── Preview ── */
+    #preview-wrap {
+      display: none;
+      position: relative;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--surface);
+      max-height: 340px;
+    }
+
+    #preview-wrap img {
+      width: 100%;
+      max-height: 340px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .preview-clear {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.6);
+      border: none;
+      color: #fff;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── Options row ── */
+    .options-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .pill-group {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .pill-group label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .pill {
+      padding: 6px 14px;
+      border-radius: 99px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .pill.active {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 15%, var(--surface));
+      color: var(--text);
+    }
+
+    /* ── Analyze button ── */
+    #analyze-btn {
+      padding: 14px;
+      border-radius: var(--radius);
+      border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    #analyze-btn:hover { opacity: 0.9; }
+    #analyze-btn:active { transform: scale(0.98); }
+    #analyze-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Status / spinner ── */
+    #status {
+      display: none;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+      padding: 8px;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Error ── */
+    #error-box {
+      display: none;
+      background: color-mix(in srgb, #ef4444 10%, var(--surface));
+      border: 1px solid #ef4444;
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      font-size: 0.85rem;
+      color: #fca5a5;
+    }
+
+    /* ── Results ── */
+    #results {
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+      animation: fadeUp 0.3s ease;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-header {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      border: 1px solid var(--border);
+    }
+
+    .result-item {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .result-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .result-price {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--green);
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      padding: 3px 9px;
+      border-radius: 99px;
+      border: 1px solid;
+      font-weight: 600;
+    }
+
+    .badge-read   { color: var(--green);  border-color: var(--green);  background: color-mix(in srgb, var(--green) 10%, transparent); }
+    .badge-est    { color: var(--yellow); border-color: var(--yellow); background: color-mix(in srgb, var(--yellow) 10%, transparent); }
+    .badge-manual { color: var(--accent); border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+
+    .result-backend {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-left: auto;
+    }
+
+    /* ── Token table ── */
+    .token-table {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .token-table table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    .token-table thead th {
+      text-align: right;
+      padding: 10px 14px;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.72rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+    }
+
+    .token-table thead th:first-child { text-align: left; }
+
+    .token-table tbody tr {
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+      transition: background 0.1s;
+    }
+
+    .token-table tbody tr:last-child { border-bottom: none; }
+    .token-table tbody tr:hover { background: var(--surface2); }
+
+    .token-table td {
+      padding: 11px 14px;
+      text-align: right;
+    }
+
+    .token-table td:first-child { text-align: left; font-weight: 600; }
+
+    .col-input  { color: #86efac; }
+    .col-output { color: #fde68a; }
+    .col-reason { color: #c4b5fd; }
+    .col-total  { color: var(--text); font-weight: 700; }
+    .col-req    { color: var(--muted); }
+
+    .no-reason { color: var(--border); }
+
+    /* ── Quip ── */
+    .quip-box {
+      background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+      border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      font-size: 0.9rem;
+      font-style: italic;
+      color: color-mix(in srgb, var(--accent) 60%, var(--text));
+      text-align: center;
+    }
+
+    /* ── Camera modal ── */
+    #cam-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 100;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    #cam-modal.open { display: flex; }
+
+    #cam-video {
+      width: min(100vw, 600px);
+      max-height: 70dvh;
+      border-radius: var(--radius);
+      background: #000;
+    }
+
+    .cam-controls {
+      display: flex;
+      gap: 14px;
+    }
+
+    .cam-snap {
+      padding: 12px 32px;
+      border-radius: 99px;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .cam-cancel {
+      padding: 12px 24px;
+      border-radius: 99px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .cam-flip {
+      padding: 12px 16px;
+      border-radius: 99px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    /* ── Footer ── */
+    footer {
+      margin-top: auto;
+      padding: 20px;
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    footer a { color: var(--muted); text-underline-offset: 3px; }
+
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+      .token-table thead th:nth-child(3),
+      .token-table td:nth-child(3) { display: none; } /* hide Reasoning on small screens */
+
+      .result-price { font-size: 1.3rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="logo">TOKENEYES</span>
+  <span class="tagline">See the world in AI tokens</span>
+</header>
+
+<main>
+
+  <!-- Drop / upload zone -->
+  <div class="drop-zone" id="drop-zone">
+    <input type="file" id="file-input" accept="image/*" />
+    <span class="drop-icon">📷</span>
+    <h2>Drop an image or tap to upload</h2>
+    <p>Price tags, receipts, products, menus — anything with a price</p>
+    <button class="camera-btn" id="cam-open-btn" type="button">
+      🎥 Use Camera
+    </button>
+  </div>
+
+  <!-- Image preview -->
+  <div id="preview-wrap">
+    <img id="preview-img" src="" alt="preview" />
+    <button class="preview-clear" id="preview-clear" title="Clear">✕</button>
+  </div>
+
+  <!-- Mode + backend options -->
+  <div class="options-row">
+    <div>
+      <div class="pill-group">
+        <label>Mode</label>
+        <button class="pill active" data-group="mode" data-val="read">Read price tag</button>
+        <button class="pill" data-group="mode" data-val="guess">Guess price</button>
+      </div>
+    </div>
+    <div>
+      <div class="pill-group">
+        <label>Backend</label>
+        <button class="pill active" data-group="backend" data-val="auto">Auto</button>
+        <button class="pill" data-group="backend" data-val="gemini">Gemini</button>
+        <button class="pill" data-group="backend" data-val="openrouter">OpenRouter</button>
+      </div>
+    </div>
+  </div>
+
+  <button id="analyze-btn" disabled>Analyze Image</button>
+
+  <div id="status"><span class="spinner"></span> <span id="status-text">Analyzing…</span></div>
+  <div id="error-box"></div>
+
+  <!-- Results -->
+  <div id="results">
+    <div class="result-header">
+      <div class="result-item" id="r-item"></div>
+      <div class="result-meta">
+        <span class="result-price" id="r-price"></span>
+        <span class="badge" id="r-badge"></span>
+        <span class="result-backend" id="r-backend"></span>
+      </div>
+    </div>
+
+    <div class="token-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th class="col-input">Input</th>
+            <th class="col-output">Output</th>
+            <th class="col-reason">Reasoning</th>
+            <th class="col-total">Total</th>
+            <th class="col-req">~Requests</th>
+          </tr>
+        </thead>
+        <tbody id="token-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="quip-box" id="quip-box" style="display:none"></div>
+  </div>
+
+</main>
+
+<footer>
+  <a href="https://github.com/disc0nnctd/TokenEyes" target="_blank">TokenEyes</a>
+  — open source · MIT license<br/>
+  Prices estimated using AI vision (Gemini / OpenRouter free models).<br/>
+  Token costs can be calibrated to your actual API usage patterns.
+</footer>
+
+<!-- Camera modal -->
+<div id="cam-modal">
+  <video id="cam-video" autoplay playsinline muted></video>
+  <canvas id="cam-canvas" style="display:none"></canvas>
+  <div class="cam-controls">
+    <button class="cam-flip" id="cam-flip-btn" title="Flip camera">🔄</button>
+    <button class="cam-snap" id="cam-snap-btn">📸 Snap</button>
+    <button class="cam-cancel" id="cam-cancel-btn">Cancel</button>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+let selectedFile = null;
+let selectedMode = 'read';
+let selectedBackend = 'auto';
+let camStream = null;
+let facingMode = 'environment'; // rear cam default on mobile
+
+// ── Pill toggles ──────────────────────────────────────────────────────────
+document.querySelectorAll('.pill[data-group]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const group = btn.dataset.group;
+    document.querySelectorAll(`.pill[data-group="${group}"]`).forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (group === 'mode')    selectedMode    = btn.dataset.val;
+    if (group === 'backend') selectedBackend = btn.dataset.val;
+  });
+});
+
+// ── File input / drop zone ─────────────────────────────────────────────────
+const dropZone   = document.getElementById('drop-zone');
+const fileInput  = document.getElementById('file-input');
+const previewWrap = document.getElementById('preview-wrap');
+const previewImg  = document.getElementById('preview-img');
+const analyzeBtn  = document.getElementById('analyze-btn');
+
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) setFile(fileInput.files[0]);
+});
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  const f = e.dataTransfer?.files?.[0];
+  if (f && f.type.startsWith('image/')) setFile(f);
+});
+
+document.getElementById('preview-clear').addEventListener('click', clearFile);
+
+function setFile(file) {
+  selectedFile = file;
+  const url = URL.createObjectURL(file);
+  previewImg.src = url;
+  previewWrap.style.display = 'block';
+  dropZone.style.display = 'none';
+  analyzeBtn.disabled = false;
+  clearResults();
+}
+
+function clearFile() {
+  selectedFile = null;
+  previewImg.src = '';
+  previewWrap.style.display = 'none';
+  dropZone.style.display = '';
+  analyzeBtn.disabled = true;
+  fileInput.value = '';
+  clearResults();
+}
+
+// ── Camera ────────────────────────────────────────────────────────────────
+const camModal    = document.getElementById('cam-modal');
+const camVideo    = document.getElementById('cam-video');
+const camCanvas   = document.getElementById('cam-canvas');
+const camOpenBtn  = document.getElementById('cam-open-btn');
+const camSnapBtn  = document.getElementById('cam-snap-btn');
+const camCancelBtn= document.getElementById('cam-cancel-btn');
+const camFlipBtn  = document.getElementById('cam-flip-btn');
+
+camOpenBtn.addEventListener('click', e => {
+  e.stopPropagation(); // don't trigger file input
+  openCamera();
+});
+
+async function openCamera() {
+  try {
+    camStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode, width: { ideal: 1280 }, height: { ideal: 960 } },
+      audio: false,
+    });
+    camVideo.srcObject = camStream;
+    camModal.classList.add('open');
+  } catch (err) {
+    alert('Camera access denied or unavailable: ' + err.message);
+  }
+}
+
+camFlipBtn.addEventListener('click', async () => {
+  facingMode = facingMode === 'environment' ? 'user' : 'environment';
+  stopCamera();
+  await openCamera();
+});
+
+camSnapBtn.addEventListener('click', () => {
+  camCanvas.width  = camVideo.videoWidth;
+  camCanvas.height = camVideo.videoHeight;
+  camCanvas.getContext('2d').drawImage(camVideo, 0, 0);
+  camCanvas.toBlob(blob => {
+    const file = new File([blob], 'camera-snap.jpg', { type: 'image/jpeg' });
+    setFile(file);
+    closeCamera();
+  }, 'image/jpeg', 0.92);
+});
+
+camCancelBtn.addEventListener('click', closeCamera);
+
+function closeCamera() {
+  stopCamera();
+  camModal.classList.remove('open');
+}
+
+function stopCamera() {
+  if (camStream) {
+    camStream.getTracks().forEach(t => t.stop());
+    camStream = null;
+  }
+  camVideo.srcObject = null;
+}
+
+// ── Analyze ───────────────────────────────────────────────────────────────
+analyzeBtn.addEventListener('click', analyze);
+
+async function analyze() {
+  if (!selectedFile) return;
+
+  setStatus('Analyzing image…');
+  clearResults();
+  analyzeBtn.disabled = true;
+
+  const form = new FormData();
+  form.append('image', selectedFile);
+  form.append('mode', selectedMode);
+  form.append('backend', selectedBackend);
+
+  try {
+    const res = await fetch('/api/analyze', { method: 'POST', body: form });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showError(data.detail?.message || data.detail || 'Analysis failed.');
+      return;
+    }
+
+    renderResults(data);
+  } catch (err) {
+    showError('Network error: ' + err.message);
+  } finally {
+    clearStatus();
+    analyzeBtn.disabled = false;
+  }
+}
+
+// ── Render ────────────────────────────────────────────────────────────────
+function renderResults(data) {
+  document.getElementById('r-item').textContent = data.item;
+  document.getElementById('r-price').textContent = `$${data.price_usd.toFixed(2)}`;
+
+  const badge = document.getElementById('r-badge');
+  const badgeMap = {
+    read:      ['read from image', 'badge-read'],
+    estimated: ['estimated', 'badge-est'],
+    manual:    ['manual', 'badge-manual'],
+  };
+  const [label, cls] = badgeMap[data.confidence] || [data.confidence, 'badge-manual'];
+  badge.textContent = label;
+  badge.className = 'badge ' + cls;
+
+  document.getElementById('r-backend').textContent = 'via ' + data.backend;
+
+  const tbody = document.getElementById('token-tbody');
+  tbody.innerHTML = data.breakdowns.map(b => `
+    <tr>
+      <td>${b.display_name}</td>
+      <td class="col-input">${fmt(b.input_tokens)}</td>
+      <td class="col-output">${fmt(b.output_tokens)}</td>
+      <td class="col-reason">${b.reasoning_tokens != null ? fmt(b.reasoning_tokens) : '<span class="no-reason">—</span>'}</td>
+      <td class="col-total">${fmt(b.total_tokens)}</td>
+      <td class="col-req">${b.avg_requests.toLocaleString()}</td>
+    </tr>
+  `).join('');
+
+  const quipBox = document.getElementById('quip-box');
+  if (data.quip) {
+    quipBox.textContent = data.quip;
+    quipBox.style.display = '';
+  } else {
+    quipBox.style.display = 'none';
+  }
+
+  document.getElementById('results').style.display = 'flex';
+}
+
+function fmt(n) {
+  if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+  return n.toLocaleString();
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+function setStatus(msg) {
+  document.getElementById('status-text').textContent = msg;
+  document.getElementById('status').style.display = 'block';
+  document.getElementById('error-box').style.display = 'none';
+}
+
+function clearStatus() {
+  document.getElementById('status').style.display = 'none';
+}
+
+function showError(msg) {
+  const box = document.getElementById('error-box');
+  box.textContent = msg;
+  box.style.display = 'block';
+  clearStatus();
+}
+
+function clearResults() {
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('error-box').style.display = 'none';
+}
+</script>
+</body>
+</html>

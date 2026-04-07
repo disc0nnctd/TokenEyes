@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>TokenEyes — See the world in AI tokens</title>
+  <meta name="description" content="Point your camera at any price tag and see what it costs in AI tokens. Your API key never leaves your browser." />
+  <style>
+    /* ── Reset & tokens ──────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #08080f;
+      --surface:  #111118;
+      --surface2: #18181f;
+      --surface3: #1f1f2a;
+      --border:   #27273a;
+      --accent:   #6366f1;
+      --accent2:  #8b5cf6;
+      --green:    #22c55e;
+      --yellow:   #eab308;
+      --red:      #ef4444;
+      --text:     #f0f0f8;
+      --muted:    #64647a;
+      --r:        12px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.5;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── Layout ─────────────────────────────────────────────────────────── */
+    .page { width: 100%; max-width: 660px; padding: 0 16px 60px; }
+
+    /* ── Header ─────────────────────────────────────────────────────────── */
+    header {
+      padding: 24px 0 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .logo {
+      font-size: 1.05rem;
+      font-weight: 900;
+      letter-spacing: 0.14em;
+      background: linear-gradient(130deg, var(--accent), var(--accent2) 60%, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .tagline { font-size: 0.78rem; color: var(--muted); }
+
+    /* ── Security disclaimer ─────────────────────────────────────────────── */
+    .disclaimer {
+      margin-top: 16px;
+      background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+      border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--border));
+      border-radius: var(--r);
+      overflow: hidden;
+    }
+
+    .disclaimer-toggle {
+      width: 100%;
+      background: none;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-align: left;
+    }
+
+    .disclaimer-toggle .chevron {
+      transition: transform 0.2s;
+      font-style: normal;
+    }
+
+    .disclaimer-toggle[aria-expanded="true"] .chevron { transform: rotate(180deg); }
+
+    .disclaimer-body {
+      display: none;
+      padding: 0 16px 14px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .disclaimer-body.open { display: block; }
+
+    .disclaimer-body ul { padding-left: 1.2em; }
+
+    .disclaimer-body li { margin-bottom: 4px; }
+
+    .disclaimer-body strong { color: var(--text); }
+
+    /* ── Card ────────────────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 16px;
+      margin-top: 14px;
+    }
+
+    .card-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    /* ── API Key section ─────────────────────────────────────────────────── */
+    .provider-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      padding: 5px 13px;
+      border-radius: 99px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .pill.active {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 18%, var(--surface2));
+      color: var(--text);
+    }
+
+    .key-wrap {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .key-input {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.85rem;
+      padding: 9px 12px;
+      font-family: "SF Mono", "Fira Code", monospace;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .key-input:focus { border-color: var(--accent); }
+    .key-input::placeholder { color: var(--muted); font-family: inherit; }
+
+    .icon-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 9px 11px;
+      font-size: 1rem;
+      line-height: 1;
+      transition: color 0.15s, border-color 0.15s;
+      flex-shrink: 0;
+    }
+
+    .icon-btn:hover { color: var(--text); border-color: var(--accent); }
+
+    .key-hint {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 7px;
+    }
+
+    .key-hint a { color: var(--accent); text-underline-offset: 2px; }
+
+    /* ── Camera / upload zone ────────────────────────────────────────────── */
+    .camera-area { position: relative; }
+
+    #video-preview {
+      width: 100%;
+      max-height: 320px;
+      border-radius: 8px;
+      background: #000;
+      display: block;
+      object-fit: cover;
+    }
+
+    #snapshot-canvas { display: none; }
+
+    #captured-img {
+      display: none;
+      width: 100%;
+      max-height: 320px;
+      border-radius: 8px;
+      object-fit: contain;
+      background: #000;
+    }
+
+    .cam-controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 10px 18px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn:hover { border-color: var(--accent); background: var(--surface3); }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn:active:not(:disabled) { transform: scale(0.97); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-color: transparent;
+      color: #fff;
+    }
+
+    .btn-primary:hover { opacity: 0.88; border-color: transparent; background: linear-gradient(135deg, var(--accent), var(--accent2)); }
+
+    .btn-danger { border-color: var(--red); color: var(--red); }
+    .btn-danger:hover { background: color-mix(in srgb, var(--red) 10%, var(--surface2)); }
+
+    .btn-full { width: 100%; justify-content: center; padding: 13px; font-size: 0.95rem; }
+
+    .or-divider {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin: 10px 0;
+      position: relative;
+    }
+
+    .or-divider::before, .or-divider::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: calc(50% - 24px);
+      height: 1px;
+      background: var(--border);
+    }
+
+    .or-divider::before { left: 0; }
+    .or-divider::after { right: 0; }
+
+    .upload-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 18px;
+      border-radius: 8px;
+      border: 1px dashed var(--border);
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      width: 100%;
+    }
+
+    .upload-label:hover { border-color: var(--accent); color: var(--text); }
+
+    input[type=file] { display: none; }
+
+    /* ── Mode select ─────────────────────────────────────────────────────── */
+    .mode-row { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    /* ── Analyze button ──────────────────────────────────────────────────── */
+    #analyze-btn { margin-top: 16px; }
+
+    /* ── Status ──────────────────────────────────────────────────────────── */
+    .status-bar {
+      display: none;
+      margin-top: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 14px 16px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .status-bar.visible { display: block; }
+
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Error ───────────────────────────────────────────────────────────── */
+    .error-box {
+      display: none;
+      margin-top: 14px;
+      background: color-mix(in srgb, var(--red) 8%, var(--surface));
+      border: 1px solid color-mix(in srgb, var(--red) 40%, var(--border));
+      border-radius: var(--r);
+      padding: 13px 16px;
+      font-size: 0.82rem;
+      color: #fca5a5;
+    }
+
+    .error-box.visible { display: block; }
+
+    /* ── Results ─────────────────────────────────────────────────────────── */
+    #results {
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 14px;
+      animation: fadeUp 0.3s ease;
+    }
+
+    #results.visible { display: flex; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-header {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 16px;
+    }
+
+    .r-item {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .r-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .r-price {
+      font-size: 1.7rem;
+      font-weight: 800;
+      color: var(--green);
+      letter-spacing: -0.02em;
+    }
+
+    .badge {
+      font-size: 0.68rem;
+      padding: 3px 9px;
+      border-radius: 99px;
+      border: 1px solid;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .badge-read   { color: var(--green);  border-color: var(--green);  background: color-mix(in srgb, var(--green) 10%, transparent); }
+    .badge-est    { color: var(--yellow); border-color: var(--yellow); background: color-mix(in srgb, var(--yellow) 10%, transparent); }
+
+    .r-via { font-size: 0.7rem; color: var(--muted); margin-left: auto; }
+
+    /* ── Token table ─────────────────────────────────────────────────────── */
+    .token-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      overflow: auto;
+    }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 460px; }
+
+    thead th {
+      text-align: right;
+      padding: 10px 13px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+      white-space: nowrap;
+    }
+
+    thead th:first-child { text-align: left; }
+
+    tbody tr { border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent); }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface2); }
+
+    td { padding: 10px 13px; text-align: right; white-space: nowrap; }
+    td:first-child { text-align: left; font-weight: 600; }
+
+    .ci { color: #86efac; }
+    .co { color: #fde68a; }
+    .cr { color: #c4b5fd; }
+    .ct { color: var(--text); font-weight: 700; }
+    .cq { color: var(--muted); font-size: 0.75rem; }
+    .nd { color: var(--border); }
+
+    /* ── Quip ────────────────────────────────────────────────────────────── */
+    .quip {
+      background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+      border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+      border-radius: var(--r);
+      padding: 14px 18px;
+      font-size: 0.88rem;
+      font-style: italic;
+      color: color-mix(in srgb, var(--accent2) 70%, var(--text));
+      text-align: center;
+      line-height: 1.55;
+    }
+
+    /* ── Footer ──────────────────────────────────────────────────────────── */
+    footer {
+      padding: 20px;
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    footer a { color: var(--muted); }
+
+    /* ── Responsive ──────────────────────────────────────────────────────── */
+    @media (max-width: 480px) {
+      thead th:nth-child(4), td:nth-child(4) { display: none; } /* hide Reasoning */
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="logo">TOKENEYES</div>
+    <div class="tagline">Point your camera at anything with a price — see what it costs in AI tokens</div>
+  </header>
+
+  <!-- Security disclaimer -->
+  <div class="disclaimer">
+    <button class="disclaimer-toggle" id="disclaimer-toggle" aria-expanded="false">
+      <span>🔒 Privacy & API Key Safety</span>
+      <span class="chevron" aria-hidden="true">▾</span>
+    </button>
+    <div class="disclaimer-body" id="disclaimer-body">
+      <ul>
+        <li><strong>Your API key is never stored.</strong> It lives only in this page's memory and is cleared when you close or refresh the tab.</li>
+        <li><strong>Requests go directly from your browser to the LLM provider</strong> — your key never touches any TokenEyes server.</li>
+        <li><strong>We log nothing.</strong> There is no backend involved in the API call path.</li>
+        <li>Use a <strong>restricted or temporary key</strong> where possible. Gemini offers free-tier keys at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com</a>.</li>
+        <li>Be aware that LLM providers may log your requests on their side per their own privacy policies.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- API key -->
+  <div class="card">
+    <div class="card-label">API Key</div>
+
+    <div class="provider-row" role="group" aria-label="LLM provider">
+      <button class="pill active" data-group="provider" data-val="gemini">Gemini</button>
+      <button class="pill" data-group="provider" data-val="openrouter">OpenRouter</button>
+    </div>
+
+    <div class="key-wrap">
+      <input
+        class="key-input"
+        id="api-key-input"
+        type="password"
+        autocomplete="off"
+        autocorrect="off"
+        spellcheck="false"
+        placeholder="Paste your API key here…"
+        aria-label="API key"
+      />
+      <button class="icon-btn" id="key-toggle-btn" title="Show / hide key" aria-label="Toggle key visibility">👁</button>
+    </div>
+
+    <div class="key-hint" id="key-hint">
+      Get a free Gemini key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>
+    </div>
+  </div>
+
+  <!-- Camera & upload -->
+  <div class="card">
+    <div class="card-label">Image</div>
+    <div class="camera-area">
+      <video id="video-preview" autoplay playsinline muted></video>
+      <canvas id="snapshot-canvas"></canvas>
+      <img id="captured-img" alt="Captured image" />
+    </div>
+
+    <div class="cam-controls" id="cam-controls-live">
+      <button class="btn" id="flip-btn" title="Flip camera">🔄 Flip</button>
+      <button class="btn btn-primary" id="snap-btn">📸 Capture</button>
+    </div>
+
+    <div class="cam-controls" id="cam-controls-captured" style="display:none">
+      <button class="btn btn-danger" id="retake-btn">✕ Retake</button>
+    </div>
+
+    <div class="or-divider">or</div>
+
+    <label class="upload-label" for="file-input">
+      📁 Upload from device
+    </label>
+    <input type="file" id="file-input" accept="image/*" />
+
+    <!-- Mode -->
+    <div style="margin-top:12px">
+      <div class="card-label">Mode</div>
+      <div class="mode-row" role="group" aria-label="Analysis mode">
+        <button class="pill active" data-group="mode" data-val="read">Read price tag</button>
+        <button class="pill" data-group="mode" data-val="guess">Guess price</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Analyze -->
+  <button class="btn btn-primary btn-full" id="analyze-btn" disabled>
+    Analyze Image
+  </button>
+
+  <!-- Status -->
+  <div class="status-bar" id="status-bar">
+    <span class="spinner"></span>
+    <span id="status-text">Analyzing…</span>
+  </div>
+
+  <!-- Error -->
+  <div class="error-box" id="error-box"></div>
+
+  <!-- Results -->
+  <div id="results">
+    <div class="result-header">
+      <div class="r-item" id="r-item"></div>
+      <div class="r-meta">
+        <span class="r-price" id="r-price"></span>
+        <span class="badge" id="r-badge"></span>
+        <span class="r-via" id="r-via"></span>
+      </div>
+    </div>
+
+    <div class="token-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th class="ci">Input</th>
+            <th class="co">Output</th>
+            <th class="cr">Reasoning</th>
+            <th class="ct">Total</th>
+            <th class="cq">~Requests</th>
+          </tr>
+        </thead>
+        <tbody id="token-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="quip" id="quip" style="display:none"></div>
+  </div>
+
+</div>
+
+<footer>
+  <a href="https://github.com/disc0nnctd/TokenEyes" target="_blank" rel="noopener">TokenEyes</a>
+  &mdash; open source &middot; MIT &middot; no backend &middot; no tracking
+</footer>
+
+<script>
+'use strict';
+
+// ── Token pricing database ───────────────────────────────────────────────────
+const MODELS = [
+  { id: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6', input: 3.00,  output: 15.00, reasoning: 3.00  },
+  { id: 'claude-opus-4-6',   name: 'Claude Opus 4.6',   input: 15.00, output: 75.00, reasoning: 15.00 },
+  { id: 'claude-haiku-4-5',  name: 'Claude Haiku 4.5',  input: 0.80,  output: 4.00,  reasoning: 0.80  },
+  { id: 'gemini-2.5-flash',  name: 'Gemini 2.5 Flash',  input: 0.15,  output: 0.60,  reasoning: 0.25  },
+  { id: 'gemini-2.5-pro',    name: 'Gemini 2.5 Pro',    input: 1.25,  output: 10.00, reasoning: 1.25  },
+  { id: 'gpt-4o',            name: 'GPT-4o',            input: 2.50,  output: 10.00, reasoning: null  },
+  { id: 'gpt-4o-mini',       name: 'GPT-4o Mini',       input: 0.15,  output: 0.60,  reasoning: null  },
+];
+
+function calcTokens(usdTotal, model) {
+  const hasReasoning = model.reasoning != null;
+  // Budget split: input 30%, reasoning 20%, output 50% (or 40/60 without reasoning)
+  const split = hasReasoning
+    ? { input: 0.30, reasoning: 0.20, output: 0.50 }
+    : { input: 0.40, output: 0.60 };
+
+  const inputTokens     = Math.floor((usdTotal * split.input)     / model.input     * 1e6);
+  const outputTokens    = Math.floor((usdTotal * split.output)    / model.output    * 1e6);
+  const reasoningTokens = hasReasoning
+    ? Math.floor((usdTotal * split.reasoning) / model.reasoning * 1e6)
+    : null;
+
+  const totalTokens = inputTokens + outputTokens + (reasoningTokens ?? 0);
+  const blendedCostPerToken = totalTokens > 0 ? usdTotal / totalTokens : 0;
+  const avgRequests = blendedCostPerToken > 0
+    ? Math.floor(usdTotal / (blendedCostPerToken * 1000))
+    : 0;
+
+  return { inputTokens, outputTokens, reasoningTokens, totalTokens, avgRequests };
+}
+
+function fmtTokens(n) {
+  if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+  return n.toLocaleString();
+}
+
+// ── LLM prompts ──────────────────────────────────────────────────────────────
+const READ_PROMPT = `Look at this image carefully. Find any price tag, price label, menu price, receipt total, or displayed cost.
+
+Return ONLY valid JSON (no markdown, no extra text):
+{"item":"<short description>","price":<number>,"currency":"<3-letter code>","price_usd":<price in USD as number>,"confidence":"read"}
+
+If no price is visible return:
+{"item":"<what you see>","price":null,"currency":null,"price_usd":null,"confidence":"none"}`;
+
+const GUESS_PROMPT = `Look at this image and identify the main object or product.
+
+Estimate its typical retail price in USD.
+
+Return ONLY valid JSON (no markdown, no extra text):
+{"item":"<short description>","price":<number>,"currency":"USD","price_usd":<number>,"confidence":"estimated"}`;
+
+const quipPrompt = (item, price, tokens, modelName) =>
+  `I found out a ${item} ($${price.toFixed(2)}) equals ${tokens.toLocaleString()} ${modelName} tokens. Write ONE short funny one-liner (under 90 chars) about this. No quotes, just the line.`;
+
+// ── State ────────────────────────────────────────────────────────────────────
+let provider    = 'gemini';
+let mode        = 'read';
+let imageFile   = null;       // File | Blob
+let imageB64    = null;       // base64 string (no prefix)
+let imageMime   = 'image/jpeg';
+let camStream   = null;
+let facingMode  = 'environment';
+
+// ── DOM refs ─────────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const apiKeyInput   = $('api-key-input');
+const keyToggleBtn  = $('key-toggle-btn');
+const keyHint       = $('key-hint');
+const videoEl       = $('video-preview');
+const canvas        = $('snapshot-canvas');
+const capturedImg   = $('captured-img');
+const snapBtn       = $('snap-btn');
+const flipBtn       = $('flip-btn');
+const retakeBtn     = $('retake-btn');
+const camLive       = $('cam-controls-live');
+const camCaptured   = $('cam-controls-captured');
+const fileInput     = $('file-input');
+const analyzeBtn    = $('analyze-btn');
+const statusBar     = $('status-bar');
+const statusText    = $('status-text');
+const errorBox      = $('error-box');
+const resultsEl     = $('results');
+
+// ── Disclaimer toggle ────────────────────────────────────────────────────────
+$('disclaimer-toggle').addEventListener('click', function () {
+  const expanded = this.getAttribute('aria-expanded') === 'true';
+  this.setAttribute('aria-expanded', String(!expanded));
+  $('disclaimer-body').classList.toggle('open', !expanded);
+});
+
+// ── Pill toggles ─────────────────────────────────────────────────────────────
+document.querySelectorAll('.pill[data-group]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const g = btn.dataset.group;
+    document.querySelectorAll(`.pill[data-group="${g}"]`).forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (g === 'provider') {
+      provider = btn.dataset.val;
+      keyHint.innerHTML = provider === 'gemini'
+        ? 'Get a free Gemini key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>'
+        : 'Get an OpenRouter key at <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a> — many free models available';
+    }
+    if (g === 'mode') mode = btn.dataset.val;
+  });
+});
+
+// ── Key show/hide ────────────────────────────────────────────────────────────
+keyToggleBtn.addEventListener('click', () => {
+  const isPassword = apiKeyInput.type === 'password';
+  apiKeyInput.type = isPassword ? 'text' : 'password';
+  keyToggleBtn.textContent = isPassword ? '🙈' : '👁';
+});
+
+// ── Camera startup ────────────────────────────────────────────────────────────
+async function startCamera() {
+  try {
+    camStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode, width: { ideal: 1280 }, height: { ideal: 960 } },
+      audio: false,
+    });
+    videoEl.srcObject = camStream;
+    videoEl.style.display = 'block';
+  } catch {
+    videoEl.style.display = 'none';
+    flipBtn.disabled = true;
+    snapBtn.disabled = true;
+  }
+}
+
+function stopCamera() {
+  camStream?.getTracks().forEach(t => t.stop());
+  camStream = null;
+}
+
+flipBtn.addEventListener('click', async () => {
+  facingMode = facingMode === 'environment' ? 'user' : 'environment';
+  stopCamera();
+  await startCamera();
+});
+
+// ── Snap ─────────────────────────────────────────────────────────────────────
+snapBtn.addEventListener('click', () => {
+  canvas.width  = videoEl.videoWidth  || 640;
+  canvas.height = videoEl.videoHeight || 480;
+  canvas.getContext('2d').drawImage(videoEl, 0, 0);
+  imageMime = 'image/jpeg';
+  imageB64  = canvas.toDataURL(imageMime, 0.92).split(',')[1];
+  capturedImg.src = canvas.toDataURL(imageMime, 0.92);
+  showCaptured();
+});
+
+// ── File upload ───────────────────────────────────────────────────────────────
+fileInput.addEventListener('change', () => {
+  const f = fileInput.files[0];
+  if (!f) return;
+  imageMime = f.type || 'image/jpeg';
+  const reader = new FileReader();
+  reader.onload = e => {
+    imageB64 = e.target.result.split(',')[1];
+    capturedImg.src = e.target.result;
+    showCaptured();
+  };
+  reader.readAsDataURL(f);
+});
+
+function showCaptured() {
+  videoEl.style.display  = 'none';
+  capturedImg.style.display = 'block';
+  camLive.style.display     = 'none';
+  camCaptured.style.display = 'flex';
+  checkReady();
+}
+
+retakeBtn.addEventListener('click', () => {
+  imageB64 = null;
+  capturedImg.style.display = 'none';
+  capturedImg.src = '';
+  videoEl.style.display  = 'block';
+  camLive.style.display     = 'flex';
+  camCaptured.style.display = 'none';
+  fileInput.value = '';
+  checkReady();
+  clearResults();
+  startCamera();
+});
+
+function checkReady() {
+  analyzeBtn.disabled = !(imageB64 && apiKeyInput.value.trim());
+}
+
+apiKeyInput.addEventListener('input', checkReady);
+
+// ── Analyze ───────────────────────────────────────────────────────────────────
+analyzeBtn.addEventListener('click', analyze);
+
+async function analyze() {
+  const key = apiKeyInput.value.trim();
+  if (!key || !imageB64) return;
+
+  setStatus('Sending to ' + (provider === 'gemini' ? 'Gemini' : 'OpenRouter') + '…');
+  clearResults();
+  analyzeBtn.disabled = true;
+
+  try {
+    const prompt = mode === 'guess' ? GUESS_PROMPT : READ_PROMPT;
+    let priceData;
+
+    if (provider === 'gemini') {
+      priceData = await callGemini(key, imageB64, imageMime, prompt);
+    } else {
+      priceData = await callOpenRouter(key, imageB64, imageMime, prompt);
+    }
+
+    if (!priceData || priceData.price_usd == null) {
+      showError(
+        priceData?.item
+          ? `Could not find a price in this image (saw: "${priceData.item}"). Try Guess mode instead.`
+          : 'No price found. Try Guess mode or a clearer image.'
+      );
+      return;
+    }
+
+    setStatus('Generating token breakdown…');
+    const quipText = await generateQuip(key, priceData);
+    renderResults(priceData, quipText);
+
+  } catch (err) {
+    if (err.name === 'ApiError') {
+      showError(err.message);
+    } else {
+      showError('Network error — check your connection. ' + err.message);
+    }
+  } finally {
+    clearStatus();
+    analyzeBtn.disabled = false;
+    checkReady();
+  }
+}
+
+// ── Gemini API call ───────────────────────────────────────────────────────────
+async function callGemini(key, b64, mime, prompt) {
+  const body = {
+    contents: [{
+      parts: [
+        { inline_data: { mime_type: mime, data: b64 } },
+        { text: prompt },
+      ],
+    }],
+    generationConfig: { temperature: 0.1, maxOutputTokens: 1024 },
+  };
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(key)}`,
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+  );
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    const msg = err?.error?.message || `Gemini API error (${res.status})`;
+    throw Object.assign(new Error(msg), { name: 'ApiError' });
+  }
+
+  const data = await res.json();
+  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+  return parseJsonResponse(text);
+}
+
+async function callGeminiText(key, prompt) {
+  const body = {
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: { temperature: 0.9, maxOutputTokens: 256 },
+  };
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(key)}`,
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+  );
+
+  if (!res.ok) return null;
+  const data = await res.json();
+  return (data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '').trim();
+}
+
+// ── OpenRouter API call ───────────────────────────────────────────────────────
+async function callOpenRouter(key, b64, mime, prompt) {
+  const imageUrl = `data:${mime};base64,${b64}`;
+  const body = {
+    model: 'google/gemini-2.0-flash-exp:free',
+    messages: [{
+      role: 'user',
+      content: [
+        { type: 'image_url', image_url: { url: imageUrl } },
+        { type: 'text', text: prompt },
+      ],
+    }],
+    max_tokens: 1024,
+    temperature: 0.1,
+  };
+
+  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${key}`,
+      'HTTP-Referer': location.origin,
+      'X-Title': 'TokenEyes',
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    const msg = err?.error?.message || `OpenRouter error (${res.status})`;
+    throw Object.assign(new Error(msg), { name: 'ApiError' });
+  }
+
+  const data = await res.json();
+  const text = data?.choices?.[0]?.message?.content ?? '';
+  return parseJsonResponse(text);
+}
+
+async function callOpenRouterText(key, prompt) {
+  const body = {
+    model: 'google/gemini-2.0-flash-exp:free',
+    messages: [{ role: 'user', content: prompt }],
+    max_tokens: 256,
+    temperature: 0.9,
+  };
+
+  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${key}`,
+      'HTTP-Referer': location.origin,
+      'X-Title': 'TokenEyes',
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) return null;
+  const data = await res.json();
+  return (data?.choices?.[0]?.message?.content ?? '').trim();
+}
+
+// ── JSON parsing ──────────────────────────────────────────────────────────────
+function parseJsonResponse(text) {
+  let t = text.trim();
+  // Strip markdown fences
+  if (t.startsWith('```')) {
+    t = t.split('\n').slice(1).join('\n');
+    if (t.endsWith('```')) t = t.slice(0, -3);
+    t = t.trim();
+  }
+  // Extract first JSON object if there's surrounding text
+  const match = t.match(/\{[\s\S]*\}/);
+  if (match) t = match[0];
+  try { return JSON.parse(t); } catch { return null; }
+}
+
+// ── Quip generation ───────────────────────────────────────────────────────────
+async function generateQuip(key, priceData) {
+  if (!priceData?.price_usd) return null;
+  const best = MODELS[0]; // Claude Sonnet
+  const { totalTokens } = calcTokens(priceData.price_usd, best);
+  const prompt = quipPrompt(priceData.item, priceData.price_usd, totalTokens, best.name);
+  try {
+    return provider === 'gemini'
+      ? await callGeminiText(key, prompt)
+      : await callOpenRouterText(key, prompt);
+  } catch {
+    return null;
+  }
+}
+
+// ── Render results ────────────────────────────────────────────────────────────
+function renderResults(priceData, quipText) {
+  $('r-item').textContent = priceData.item;
+  $('r-price').textContent = `$${Number(priceData.price_usd).toFixed(2)}`;
+
+  const badge = $('r-badge');
+  const isEst = priceData.confidence === 'estimated';
+  badge.textContent = isEst ? 'estimated' : 'read from image';
+  badge.className = 'badge ' + (isEst ? 'badge-est' : 'badge-read');
+
+  $('r-via').textContent = 'via ' + provider;
+
+  const tbody = $('token-tbody');
+  tbody.innerHTML = MODELS.map(m => {
+    const { inputTokens, outputTokens, reasoningTokens, totalTokens, avgRequests } = calcTokens(priceData.price_usd, m);
+    const rCell = m.reasoning != null
+      ? `<td class="cr">${fmtTokens(reasoningTokens)}</td>`
+      : `<td class="nd">—</td>`;
+    return `<tr>
+      <td>${m.name}</td>
+      <td class="ci">${fmtTokens(inputTokens)}</td>
+      <td class="co">${fmtTokens(outputTokens)}</td>
+      ${rCell}
+      <td class="ct">${fmtTokens(totalTokens)}</td>
+      <td class="cq">${avgRequests.toLocaleString()}</td>
+    </tr>`;
+  }).join('');
+
+  const quipEl = $('quip');
+  if (quipText) {
+    quipEl.textContent = quipText;
+    quipEl.style.display = '';
+  } else {
+    quipEl.style.display = 'none';
+  }
+
+  resultsEl.classList.add('visible');
+  resultsEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ── UI helpers ────────────────────────────────────────────────────────────────
+function setStatus(msg) {
+  statusText.textContent = msg;
+  statusBar.classList.add('visible');
+  errorBox.classList.remove('visible');
+}
+
+function clearStatus() {
+  statusBar.classList.remove('visible');
+}
+
+function showError(msg) {
+  errorBox.textContent = msg;
+  errorBox.classList.add('visible');
+  clearStatus();
+}
+
+function clearResults() {
+  resultsEl.classList.remove('visible');
+  errorBox.classList.remove('visible');
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+startCamera();
+</script>
+</body>
+</html>
