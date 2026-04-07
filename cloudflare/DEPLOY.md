@@ -38,6 +38,10 @@ npx serve . -p 3000
    - **Build output directory:** `cloudflare`
 5. Save & deploy
 
+This folder is a plain static site. Do not add an SPA fallback redirect
+(`/* /index.html 200`), because Cloudflare Pages validates it as a redirect
+loop for this deployment setup.
+
 Every push to `main` auto-deploys.
 
 ### Option C: Wrangler CLI
