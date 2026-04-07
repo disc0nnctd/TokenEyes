@@ -507,6 +507,21 @@
     <div class="provider-row" role="group" aria-label="LLM provider">
       <button class="pill active" data-group="provider" data-val="gemini">Gemini</button>
       <button class="pill" data-group="provider" data-val="openrouter">OpenRouter</button>
+      <button class="pill" data-group="provider" data-val="cloudflare">Cloudflare AI</button>
+    </div>
+
+    <!-- Account ID row — only shown for Cloudflare -->
+    <div class="key-wrap" id="cf-account-wrap" style="display:none;margin-bottom:8px">
+      <input
+        class="key-input"
+        id="cf-account-input"
+        type="text"
+        autocomplete="off"
+        autocorrect="off"
+        spellcheck="false"
+        placeholder="Cloudflare Account ID"
+        aria-label="Cloudflare Account ID"
+      />
     </div>
 
     <div class="key-wrap">
@@ -690,6 +705,8 @@ const $ = id => document.getElementById(id);
 const apiKeyInput   = $('api-key-input');
 const keyToggleBtn  = $('key-toggle-btn');
 const keyHint       = $('key-hint');
+const cfAccountWrap = $('cf-account-wrap');
+const cfAccountInput= $('cf-account-input');
 const videoEl       = $('video-preview');
 const canvas        = $('snapshot-canvas');
 const capturedImg   = $('captured-img');
@@ -720,9 +737,15 @@ document.querySelectorAll('.pill[data-group]').forEach(btn => {
     btn.classList.add('active');
     if (g === 'provider') {
       provider = btn.dataset.val;
-      keyHint.innerHTML = provider === 'gemini'
-        ? 'Get a free Gemini key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>'
-        : 'Get an OpenRouter key at <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a> — many free models available';
+      const hints = {
+        gemini:      'Get a free Gemini key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>',
+        openrouter:  'Get an OpenRouter key at <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a> — many free models available',
+        cloudflare:  'Get a Workers AI token at <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noopener">dash.cloudflare.com/profile/api-tokens</a> — free tier included. Also enter your Account ID above.',
+      };
+      keyHint.innerHTML = hints[provider] || '';
+      cfAccountWrap.style.display = provider === 'cloudflare' ? 'flex' : 'none';
+      apiKeyInput.placeholder = provider === 'cloudflare' ? 'Workers AI API Token' : 'Paste your API key here…';
+      checkReady();
     }
     if (g === 'mode') mode = btn.dataset.val;
   });
@@ -809,8 +832,12 @@ retakeBtn.addEventListener('click', () => {
 });
 
 function checkReady() {
-  analyzeBtn.disabled = !(imageB64 && apiKeyInput.value.trim());
+  const hasKey = !!apiKeyInput.value.trim();
+  const hasCfAccount = provider !== 'cloudflare' || !!cfAccountInput.value.trim();
+  analyzeBtn.disabled = !(imageB64 && hasKey && hasCfAccount);
 }
+
+cfAccountInput.addEventListener('input', checkReady);
 
 apiKeyInput.addEventListener('input', checkReady);
 
@@ -821,7 +848,8 @@ async function analyze() {
   const key = apiKeyInput.value.trim();
   if (!key || !imageB64) return;
 
-  setStatus('Sending to ' + (provider === 'gemini' ? 'Gemini' : 'OpenRouter') + '…');
+  const providerNames = { gemini: 'Gemini', openrouter: 'OpenRouter', cloudflare: 'Cloudflare AI' };
+  setStatus('Sending to ' + (providerNames[provider] || provider) + '…');
   clearResults();
   analyzeBtn.disabled = true;
 
@@ -831,6 +859,8 @@ async function analyze() {
 
     if (provider === 'gemini') {
       priceData = await callGemini(key, imageB64, imageMime, prompt);
+    } else if (provider === 'cloudflare') {
+      priceData = await callCloudflareAI(cfAccountInput.value.trim(), key, imageB64, imageMime, prompt);
     } else {
       priceData = await callOpenRouter(key, imageB64, imageMime, prompt);
     }
@@ -967,6 +997,66 @@ async function callOpenRouterText(key, prompt) {
   return (data?.choices?.[0]?.message?.content ?? '').trim();
 }
 
+// ── Cloudflare Workers AI ────────────────────────────────────────────────────
+const CF_VISION_MODEL = '@cf/meta/llama-3.2-11b-vision-instruct';
+const CF_TEXT_MODEL   = '@cf/meta/llama-3.1-8b-instruct';
+
+function cfUrl(accountId, model) {
+  return `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${encodeURIComponent(model)}`;
+}
+
+async function callCloudflareAI(accountId, token, b64, mime, prompt) {
+  const body = {
+    messages: [{
+      role: 'user',
+      content: [
+        { type: 'image_url', image_url: { url: `data:${mime};base64,${b64}` } },
+        { type: 'text', text: prompt },
+      ],
+    }],
+    max_tokens: 1024,
+  };
+
+  const res = await fetch(cfUrl(accountId, CF_VISION_MODEL), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    const msg = err?.errors?.[0]?.message || `Cloudflare AI error (${res.status})`;
+    throw Object.assign(new Error(msg), { name: 'ApiError' });
+  }
+
+  const data = await res.json();
+  const text = data?.result?.response ?? '';
+  return parseJsonResponse(text);
+}
+
+async function callCloudflareAIText(accountId, token, prompt) {
+  const body = {
+    messages: [{ role: 'user', content: prompt }],
+    max_tokens: 256,
+  };
+
+  const res = await fetch(cfUrl(accountId, CF_TEXT_MODEL), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) return null;
+  const data = await res.json();
+  return (data?.result?.response ?? '').trim();
+}
+
 // ── JSON parsing ──────────────────────────────────────────────────────────────
 function parseJsonResponse(text) {
   let t = text.trim();
@@ -989,9 +1079,9 @@ async function generateQuip(key, priceData) {
   const { totalTokens } = calcTokens(priceData.price_usd, best);
   const prompt = quipPrompt(priceData.item, priceData.price_usd, totalTokens, best.name);
   try {
-    return provider === 'gemini'
-      ? await callGeminiText(key, prompt)
-      : await callOpenRouterText(key, prompt);
+    if (provider === 'gemini')      return await callGeminiText(key, prompt);
+    if (provider === 'cloudflare') return await callCloudflareAIText(cfAccountInput.value.trim(), key, prompt);
+    return await callOpenRouterText(key, prompt);
   } catch {
     return null;
   }

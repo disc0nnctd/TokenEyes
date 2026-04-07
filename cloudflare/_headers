@@ -9,7 +9,7 @@
   Permissions-Policy: camera=(*), microphone=(), geolocation=(), payment=()
   # Content Security Policy:
   #   - default: self
-  #   - connect: allow Gemini + OpenRouter APIs directly from browser
+  #   - connect: allow Gemini + OpenRouter + Cloudflare Workers AI directly from browser
   #   - img-src: allow blob: and data: for captured frames
   #   - no unsafe-eval, no unsafe-inline scripts (app is one inline script block, needed)
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; connect-src 'self' https://generativelanguage.googleapis.com https://openrouter.ai; frame-ancestors 'none';
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; connect-src 'self' https://generativelanguage.googleapis.com https://openrouter.ai https://api.cloudflare.com; frame-ancestors 'none';
