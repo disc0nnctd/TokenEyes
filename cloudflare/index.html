@@ -250,15 +250,6 @@
     .capture-btn:hover:not(:disabled) .cap-inner{background:#fff}
 
     /* mode toggle */
-    .mode-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:64px}
-    .mode-group{display:flex;background:var(--s1);border:1px solid var(--bd);border-radius:99px;padding:3px}
-    .mode-pill{
-      padding:8px 10px;border-radius:99px;border:none;background:transparent;
-      color:var(--mu);font-size:.72rem;font-weight:600;cursor:pointer;
-      transition:all .15s;font-family:inherit;
-    }
-    .mode-pill.active{background:var(--s3);color:var(--text)}
-    .mode-wrap-lbl{font-size:.63rem;font-weight:600;color:var(--mu2)}
 
     /* ── Analyze button ── */
     #analyze-btn{
@@ -411,7 +402,9 @@
     input[type=number]{-moz-appearance:textfield}
 
     /* actions */
-    .r-actions{padding:10px;display:flex;gap:8px}
+    .r-actions{padding:10px 10px 4px;display:flex;gap:8px}
+    .share-photo-lbl{display:flex;align-items:center;gap:6px;padding:0 10px 10px;font-size:.72rem;color:var(--mu);cursor:pointer;user-select:none}
+    .share-photo-lbl input{accent-color:var(--as);width:13px;height:13px;cursor:pointer;flex-shrink:0}
     .btn-action{
       flex:1;padding:10px;background:var(--s2);border:1px solid var(--bd);
       border-radius:var(--r);color:var(--mu);font-size:.78rem;font-weight:600;
@@ -531,9 +524,9 @@
           <select class="glass-input" id="gemini-model-input">
             <option value="gemini-2.5-flash">Gemini 2.5 Flash — fast &amp; cheap (default)</option>
             <option value="gemini-2.5-pro">Gemini 2.5 Pro — best quality</option>
-            <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro Preview — latest</option>
           </select>
         </div>
+
 
         <div class="sb" id="openai-config-row" style="display:none">
           <div class="slbl">Vision model</div>
@@ -543,10 +536,10 @@
         <div class="sb" id="cf-model-row" style="display:none">
           <div class="slbl">Vision model</div>
           <select class="glass-input" id="cf-model-input">
-            <option value="@cf/meta/llama-3.2-11b-vision-instruct">Llama 3.2 11B Vision — reliable default</option>
-            <option value="@cf/meta/llama-4-scout-17b">Llama 4 Scout 17B — faster, multimodal</option>
-            <option value="@cf/google/gemma-4-26b-a4b-it">Gemma 4 26B — latest Google model</option>
-            <option value="@cf/mistralai/mistral-small-3.1-24b">Mistral Small 3.1 24B — compact &amp; capable</option>
+            <option value="@cf/google/gemma-4-26b-a4b-it">Gemma 4 26B — recommended</option>
+            <option value="@cf/meta/llama-4-scout-17b-16e-instruct">Llama 4 Scout 17B — fast multimodal</option>
+            <option value="@cf/meta/llama-3.2-11b-vision-instruct">Llama 3.2 11B Vision — requires license accept</option>
+            <option value="@cf/mistralai/mistral-small-3.1-24b-instruct">Mistral Small 3.1 24B — compact &amp; capable</option>
           </select>
         </div>
 
@@ -666,13 +659,6 @@
       <div class="cap-inner"></div>
     </button>
 
-    <div class="mode-wrap">
-      <div class="mode-group" role="group" aria-label="Scan mode">
-        <button class="mode-pill active" data-val="read">🏷</button>
-        <button class="mode-pill" data-val="guess">🔮</button>
-      </div>
-      <span class="mode-wrap-lbl" id="mode-lbl-text">Read tag</span>
-    </div>
   </div>
 
   <!-- ── Analyze ── -->
@@ -744,6 +730,10 @@
       <button class="btn-action" id="share-btn">📸 Save image</button>
       <button class="btn-action" id="copy-btn">🔗 Copy link</button>
     </div>
+    <label class="share-photo-lbl">
+      <input type="checkbox" id="share-photo-toggle" checked>
+      include photo in card
+    </label>
 
     <button class="btn-rescan" id="rescan-btn">◉ Scan something new</button>
 
@@ -1021,34 +1011,25 @@ function countUp(el,target,dur=1200){
 }
 
 // ── Prompts ───────────────────────────────────────────────────────────────────
-const READ_PROMPT_BASE = `Look at this image carefully. Find any price tag, label, menu price, or receipt total.
+const AUTO_PROMPT_BASE = `Look at this image carefully.
+- If a price tag, label, menu price, or receipt is visible: read it exactly. Set confidence to "read". Return the local price and currency exactly as shown (3-letter code; infer from symbol if needed). If already USD set price_usd to the same value; if another currency set price_usd to null.
+- If no price is visible: identify the main object as specifically as possible — include brand, model name, and generation or version if distinguishable (e.g. "Apple Watch Series 9 GPS 45mm", not "smartwatch"). Search for its current retail price in USD and use that for price and price_usd. Set confidence to "estimated".
+For "resale_usd": estimate what this item could realistically sell for secondhand in USD today. Set to null for food, drinks, tickets, or consumables.
+If nothing identifiable: {"item":"<what you see>","price":null,"currency":null,"price_usd":null,"resale_usd":null,"confidence":"none","quips":[]}`;
 
-Rules:
-- Read the local price exactly as shown.
-- Return the actual local currency as a 3-letter code.
-- If the sign only shows a symbol, infer the 3-letter code from context.
-- If the price is already in USD, set "price_usd" to the same numeric value.
-- If the price is another currency, set "price_usd" to null.
-
-If no price visible: {"item":"<what you see>","price":null,"currency":null,"price_usd":null,"confidence":"none","quips":[]}`;
-
-const GUESS_PROMPT_BASE = `Look at this image. Identify the main object. Estimate its typical retail price in USD.`;
-
-function buildPrompt(isGuess, country) {
-  const base = isGuess ? GUESS_PROMPT_BASE : READ_PROMPT_BASE;
+function buildPrompt(country) {
   const n = quipCount;
-  const schema = isGuess
-    ? `{"item":"running shoes","price":89,"currency":"USD","price_usd":89,"confidence":"estimated","quips":["line1","line2"]}`
-    : `{"item":"coffee","price":4.5,"currency":"EUR","price_usd":null,"confidence":"read","quips":["line1","line2"]}`;
+  const schema = `{"item":"<identified product>","price":<number>,"currency":"<3-letter code>","price_usd":<usd amount>,"resale_usd":<usd amount or null>,"confidence":"read|estimated","quips":["<quip1>","<quip2>","<quip3>"]}`;
   if (simpleMode) {
-    const noQuipSchema = schema.replace(/,"quips":\[.*?\]/,'');
-    return `${base}\n\nReturn ONLY valid JSON (no markdown):\n${noQuipSchema}`;
+    const noQuipSchema = schema.replace(/,"resale_usd":[^,}]*/,'').replace(/,"quips":\[.*?\]/,'');
+    return `${AUTO_PROMPT_BASE}\n\nReturn ONLY valid JSON (no markdown):\n${noQuipSchema}`;
   }
   const locNote = country && n>1 ? ` One quip must be a joke only someone in ${country} would feel in their bones.`
                 : country ? ` Make it land specifically for someone in ${country}.` : '';
   const sep = n>1 ? ' Each quip should hit from a different angle.' : '';
+  const resaleNote = n>1 ? ` If resale_usd is non-null, one quip must be a flip/resale angle — state what you could sell it for and convert that to tokens too (e.g. "Flip it for $X = Y tokens profit").` : '';
   // ~200k tokens per USD on Claude Sonnet 4.6 at default split (30% input / 20% reasoning / 50% output)
-  return `${base}\n\nReturn ONLY valid JSON (no markdown):\n${schema}\n\nFor the "quips" field: this app converts prices to AI token counts. Every $1 USD ≈ 200,000 Claude Sonnet tokens. Estimate the price in USD (convert if needed), compute the token count (e.g. $5 = 1M tokens, $50 = 10M tokens), then write exactly ${n} short funny one-liner${n>1?'s':''} about that token count — what could someone do with that many AI tokens instead of buying this thing. Under 90 chars each. Exactly ${n} strings in the array.${locNote}${sep} No quotes, no parenthetical labels inside the strings.`;
+  return `${AUTO_PROMPT_BASE}\n\nReturn ONLY valid JSON (no markdown):\n${schema}\n\nFor the "quips" field: this app converts prices to AI token counts. Every $1 USD ≈ 200,000 Claude Sonnet tokens. Estimate the price in USD (convert if needed), compute the token count (e.g. $5 = 1M tokens, $50 = 10M tokens), then write exactly ${n} short funny one-liner${n>1?'s':''} about that token count — what could someone do with that many AI tokens instead of buying this thing. Under 90 chars each. Exactly ${n} strings in the array.${resaleNote}${locNote}${sep} No quotes, no parenthetical labels inside the strings.`;
 }
 
 
@@ -1056,9 +1037,9 @@ function buildPrompt(isGuess, country) {
 const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
 const NVIDIA_BASE_URL = 'https://integrate.api.nvidia.com/v1';
 let provider='gemini', orModel='openrouter/auto';
-let geminiVisionModel='gemini-2.5-flash', cfVisionModel='@cf/meta/llama-3.2-11b-vision-instruct';
+let geminiVisionModel='gemini-2.5-flash', cfVisionModel='@cf/google/gemma-4-26b-a4b-it';
 let nvidiaVisionModel='google/gemma-3-27b-it';
-let mode='read', imageB64=null, imageMime='image/jpeg';
+let imageB64=null, imageMime='image/jpeg';
 let camStream=null, facingMode='environment', lastResult=null;
 let simpleMode=false, detectedCountry=null, quipCount=3;
 let useSharedKey=false;
@@ -1359,19 +1340,12 @@ const HINTS = {
   cloudflare: 'Format: <code>ACCOUNT_ID:API_TOKEN</code> — find both at <a href="https://dash.cloudflare.com" target="_blank" rel="noopener">dash.cloudflare.com</a>',
 };
 const OPENROUTER_MODELS = [
-  { id:'openrouter/auto',                               name:'Auto — OpenRouter picks best free model' },
-  { id:'qwen/qwen2.5-vl-72b-instruct:free',             name:'Qwen 2.5 VL 72B — best free vision' },
-  { id:'qwen/qwen2.5-vl-32b-instruct:free',             name:'Qwen 2.5 VL 32B (free)' },
-  { id:'google/gemma-3-27b-it:free',                    name:'Gemma 3 27B (free)' },
-  { id:'google/gemma-3-12b-it:free',                    name:'Gemma 3 12B (free)' },
-  { id:'meta-llama/llama-3.2-11b-vision-instruct:free', name:'Llama 3.2 11B Vision (free)' },
-  { id:'mistralai/mistral-small-3.1-24b-instruct:free', name:'Mistral Small 3.1 24B (free)' },
-  { id:'moonshotai/kimi-vl-a3b-thinking:free',          name:'Kimi VL A3B Thinking (free)' },
+  { id:'openrouter/auto',            name:'Auto — best available free model' },
+  { id:'google/gemma-3-27b-it:free', name:'Gemma 3 27B (free)' },
+  { id:'google/gemma-3-12b-it:free', name:'Gemma 3 12B (free, slower)' },
 ];
 const NVIDIA_MODELS = [
   { id:'google/gemma-3-27b-it', name:'Gemma 3 27B (Free Endpoint)' },
-  { id:'meta/llama-4-scout-17b-16e-instruct', name:'Llama 4 Scout 17B (Free Endpoint)' },
-  { id:'mistralai/mistral-large-3-675b-instruct-2512', name:'Mistral Large 3 675B (Free Endpoint)' },
 ];
 orModelInput.innerHTML = OPENROUTER_MODELS.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
 orModelInput.value = OPENROUTER_MODELS[0].id; orModel = OPENROUTER_MODELS[0].id;
@@ -1391,21 +1365,12 @@ document.querySelectorAll('.pill[data-group]').forEach(btn => {
       cfModelRow.style.display      = provider === 'cloudflare' ? 'block' : 'none';
       geminiModelRow.style.display  = provider === 'gemini'     ? 'block' : 'none';
       nvidiaModelRow.style.display  = provider === 'nvidia'     ? 'block' : 'none';
-      apiKeyInput.placeholder = provider === 'cloudflare' ? 'ACCOUNT_ID:API_TOKEN' : 'Paste your API key…';
+      apiKeyInput.placeholder = provider === 'cloudflare' ? 'Paste your cfat_ token…' : 'Paste your API key…';
       checkReady();
     }
   });
 });
 
-// ── Mode pills (Read / Guess) ─────────────────────────────────────────────────
-document.querySelectorAll('.mode-pill').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.mode-pill').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    mode = btn.dataset.val;
-    $('mode-lbl-text').textContent = mode === 'read' ? 'Read tag' : 'Guess price';
-  });
-});
 
 // ── Key toggle ────────────────────────────────────────────────────────────────
 $('key-toggle-btn').addEventListener('click', () => {
@@ -1418,7 +1383,22 @@ $('proxy-pwd-toggle').addEventListener('click', () => {
   proxyPwdInput.type = pw ? 'text' : 'password';
   $('proxy-pwd-toggle').textContent = pw ? '🙈' : '👁';
 });
-apiKeyInput.addEventListener('input', checkReady);
+function detectProviderFromKey(key) {
+  const k = key.trim();
+  if (k.startsWith('AIzaSy')) return 'gemini';
+  if (k.startsWith('sk-or-v1-')) return 'openrouter';
+  if (k.startsWith('nvapi-')) return 'nvidia';
+  if (k.startsWith('cfat_') || /^[0-9a-f]{32}:cfat_/.test(k)) return 'cloudflare';
+  return null;
+}
+apiKeyInput.addEventListener('input', () => {
+  const k = apiKeyInput.value.trim();
+  const detected = detectProviderFromKey(k);
+  if (detected && detected !== provider) {
+    document.querySelector(`.pill[data-group="provider"][data-val="${detected}"]`)?.click();
+  }
+  checkReady();
+});
 proxyPwdInput.addEventListener('input', checkReady);
 orModelInput.addEventListener('change', () => { orModel = orModelInput.value; });
 geminiModelInput.addEventListener('change', () => { geminiVisionModel = geminiModelInput.value; });
@@ -1530,7 +1510,7 @@ async function analyze() {
   scanOverlay.classList.add('show');
   $('camera-frame').classList.add('scanning');
   try {
-    const prompt = buildPrompt(mode === 'guess', detectedCountry);
+    const prompt = buildPrompt(detectedCountry);
     let pd, proxyProvider;
     if (viaProxy) {
       if (!proxyPwd) {
@@ -1551,8 +1531,14 @@ async function analyze() {
     } else {
       pd = await callOpenRouter(key, orModel, imageB64, imageMime, prompt);
     }
+    // For non-Gemini providers, try DuckDuckGo as a price signal when model only estimated
+    if (pd?.confidence === 'estimated' && !viaProxy && provider !== 'gemini' && pd?.item) {
+      setStatus('Looking up price…');
+      const hint = await fetchDdgPrice(pd.item);
+      if (hint) { pd.price = hint; pd.price_usd = hint; pd.currency = 'USD'; }
+    }
     if (pd?.price_usd == null) {
-      showError(pd?.item ? `Couldn't find a price (saw: "${pd.item}"). Try Guess mode.` : 'No price found. Try Guess mode or a clearer image.');
+      showError(pd?.item ? `Couldn't find a price (saw: "${pd.item}"). Try a clearer image.` : 'No price found. Try a clearer image.');
       return;
     }
     lastResult = pd;
@@ -1570,11 +1556,22 @@ async function analyze() {
 
 // ── Gemini ────────────────────────────────────────────────────────────────────
 async function callGemini(key,b64,mime,prompt){
-  const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiVisionModel}:generateContent?key=${encodeURIComponent(key)}`,
-    {method:'POST',headers:{'Content-Type':'application/json'},
-     body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:mime,data:b64}},{text:prompt}]}],generationConfig:{temperature:0.1,maxOutputTokens:1024}})});
-  if(!r.ok){const e=await r.json().catch(()=>({}));throw Object.assign(new Error(e?.error?.message||`Gemini error (${r.status})`),{name:'ApiError'});}
-  const d=await r.json();return parseJSON(d?.candidates?.[0]?.content?.parts?.[0]?.text??'');
+  const mkBody=(withSearch)=>({
+    contents:[{parts:[{inline_data:{mime_type:mime,data:b64}},{text:prompt}]}],
+    ...(withSearch?{tools:[{googleSearch:{}}]}:{}),
+    generationConfig:{temperature:0.1,maxOutputTokens:2048}
+  });
+  const doCall=async(body)=>{
+    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiVisionModel}:generateContent?key=${encodeURIComponent(key)}`,
+      {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok){const e=await r.json().catch(()=>({}));throw Object.assign(new Error(e?.error?.message||`Gemini error (${r.status})`),{name:'ApiError'});}
+    return r.json();
+  };
+  // Try with search grounding first; fall back to plain call if response is empty
+  let d=await doCall(mkBody(true));
+  let text=(d?.candidates?.[0]?.content?.parts??[]).map(p=>p.text||'').join('');
+  if(!text.trim()){d=await doCall(mkBody(false));text=(d?.candidates?.[0]?.content?.parts??[]).map(p=>p.text||'').join('');}
+  return parseJSON(text);
 }
 async function callGeminiText(key,prompt){
   const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiVisionModel}:generateContent?key=${encodeURIComponent(key)}`,
@@ -1613,7 +1610,9 @@ async function callCloudflareAI(rawKey,b64,mime,prompt){
     {method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
      body:JSON.stringify({messages:[{role:'user',content:[{type:'image_url',image_url:{url:`data:${mime};base64,${b64}`}},{type:'text',text:prompt}]}],max_tokens:1024})});
   if(!r.ok){const e=await r.json().catch(()=>({}));throw Object.assign(new Error(e?.errors?.[0]?.message||`CF AI error (${r.status})`),{name:'ApiError'});}
-  const d=await r.json();return parseJSON(d?.result?.response??'');
+  const d=await r.json();
+  const text=d?.result?.response??d?.result?.choices?.[0]?.message?.content??'';
+  return parseJSON(text);
 }
 // ── Shared key proxy ──────────────────────────────────────────────────────────
 async function callProxy(pwd,b64,mime,prompt){
@@ -1636,6 +1635,23 @@ function parseJSON(text){
   if(t.startsWith('```')){t=t.split('\n').slice(1).join('\n');if(t.endsWith('```'))t=t.slice(0,-3);t=t.trim();}
   const m=t.match(/\{[\s\S]*\}/);if(m)t=m[0];
   try{return normalizeVisionResult(JSON.parse(t));}catch{return null;}
+}
+
+// ── DuckDuckGo price hint (fallback for non-Gemini providers) ─────────────────
+async function fetchDdgPrice(item) {
+  try {
+    const r = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(item+' retail price')}&format=json&no_html=1&kl=us-en`);
+    if (!r.ok) return null;
+    const d = await r.json();
+    const blob = [d.AbstractText, ...(d.RelatedTopics||[]).map(t=>t.Text||''), ...(d.Results||[]).map(t=>t.Text||'')].join(' ');
+    const matches = blob.match(/\$[\d,]+(?:\.\d{2})?/g);
+    if (!matches?.length) return null;
+    for (const ps of matches) {
+      const v = parseFloat(ps.replace(/[$,]/g,''));
+      if (v >= 1 && v <= 100000) return v;
+    }
+  } catch {}
+  return null;
 }
 
 // ── Hero helpers ──────────────────────────────────────────────────────────────
@@ -1764,8 +1780,21 @@ $('rescan-btn').addEventListener('click', () => {
 });
 
 // ── Share card ────────────────────────────────────────────────────────────────
-$('share-btn').addEventListener('click', () => {
+$('share-btn').addEventListener('click', async () => {
   if (!lastResult) return;
+  const includePhoto = $('share-photo-toggle').checked;
+
+  // Load captured photo if requested
+  let photoImg = null;
+  if (includePhoto && imageB64) {
+    photoImg = await new Promise(res => {
+      const img = new Image();
+      img.onload = () => res(img);
+      img.onerror = () => res(null);
+      img.src = `data:${imageMime};base64,${imageB64}`;
+    });
+  }
+
   const c = $('share-canvas'), W=1080, H=1080;
   c.width=W; c.height=H; const ctx=c.getContext('2d');
 
@@ -1787,42 +1816,83 @@ $('share-btn').addEventListener('click', () => {
   const tierColors={'tier-cheap':'#4ade80','tier-spicy':'#f5a623','tier-cursed':'#f87171','tier-cooked':'#e879f9'};
   const tierColor=tierColors[tier.cls]||'#f5a623';
 
+  // Photo thumbnail — top-right, center-cropped
+  const PS=220, PX=W-88-PS, PY=80;
+  if (photoImg) {
+    ctx.save();
+    rrect(ctx,PX,PY,PS,PS,14); ctx.clip();
+    const s=Math.min(photoImg.width,photoImg.height);
+    const sx=(photoImg.width-s)/2, sy=(photoImg.height-s)/2;
+    ctx.drawImage(photoImg,sx,sy,s,s,PX,PY,PS,PS);
+    ctx.restore();
+    ctx.strokeStyle='rgba(245,166,35,0.30)'; ctx.lineWidth=1.5;
+    rrect(ctx,PX,PY,PS,PS,14); ctx.stroke();
+  }
+
   // TOKENEYES brand
   ctx.font='800 20px sans-serif'; ctx.fillStyle='rgba(245,166,35,0.85)';
   ctx.fillText('TOKENEYES',88,106);
 
-  // Item + price
+  // Item + price (constrained width when photo present)
+  const itemMaxW = photoImg ? PX-88-20 : W-176;
   ctx.font='500 26px sans-serif'; ctx.fillStyle='rgba(237,233,222,0.55)';
-  ctx.fillText(lastResult.item+' · '+describeDetectedPrice(lastResult),88,158);
+  ctx.fillText(lastResult.item+' · '+describeDetectedPrice(lastResult),88,158,itemMaxW);
+
+  // Model comparison table — left side, below item
+  const compModels = POPULAR_HERO_MODELS.map(id=>MODELS.find(m=>m.id===id)).filter(Boolean);
+  const compMaxW = photoImg ? PX-88-20 : W-176;
+  const rowH=38, compY0=202;
+  ctx.font='500 21px sans-serif';
+  compModels.forEach((m,i) => {
+    const y=compY0+i*rowH;
+    const {tot:ct}=calcTokens(lastResult.price_usd,m);
+    const isHero=m.id===MODELS[0].id;
+    if(isHero){ctx.fillStyle='rgba(245,166,35,0.07)';rrect(ctx,84,y-22,compMaxW+4,30,6);ctx.fill();}
+    ctx.textAlign='left';
+    ctx.fillStyle=isHero?'rgba(245,166,35,0.9)':'rgba(237,233,222,0.55)';
+    ctx.fillText(m.name,92,y);
+    ctx.textAlign='right';
+    ctx.fillStyle=isHero?'rgba(245,166,35,0.9)':'rgba(237,233,222,0.4)';
+    ctx.fillText(fmt(ct),88+compMaxW,y);
+    if(i<compModels.length-1){ctx.strokeStyle='rgba(255,255,255,0.05)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(88,y+12);ctx.lineTo(88+compMaxW,y+12);ctx.stroke();}
+  });
+  ctx.textAlign='left';
 
   // Token number — big and centered
   const tokStr=fmt(tot);
-  ctx.font='700 clamp(80,120,140)px monospace';
   ctx.font='700 128px monospace';
   ctx.fillStyle='#edeade';
   const tw=ctx.measureText(tokStr).width;
-  ctx.fillText(tokStr,(W-tw)/2,460);
+  ctx.fillText(tokStr,(W-tw)/2,462);
 
   // Model label
   ctx.font='700 22px sans-serif'; ctx.fillStyle='rgba(245,166,35,0.75)';
   const ml=MODELS[0].name.toUpperCase()+' TOKENS';
-  ctx.fillText(ml,(W-ctx.measureText(ml).width)/2,510);
+  ctx.fillText(ml,(W-ctx.measureText(ml).width)/2,512);
 
   // Tier badge pill
   const tierLabel=tier.label.replace('◆ ','');
   ctx.font='800 18px sans-serif';
   const tlw=ctx.measureText(tierLabel).width+32;
-  const tx=(W-tlw)/2, ty=540;
+  const tx=(W-tlw)/2, ty=542;
   ctx.fillStyle=tierColor+'22'; rrect(ctx,tx,ty,tlw,34,17); ctx.fill();
   ctx.strokeStyle=tierColor+'55'; ctx.lineWidth=1; rrect(ctx,tx,ty,tlw,34,17); ctx.stroke();
   ctx.fillStyle=tierColor;
   ctx.fillText(tierLabel,tx+16,ty+23);
 
-  // Quip
-  const qt=quipCarousel.quips[quipCarousel.idx]||$('quip-text').textContent;
-  if(qt){
-    ctx.font='italic 500 24px sans-serif'; ctx.fillStyle='rgba(34,211,238,0.75)';
-    wrapText(ctx,'\u201c'+qt+'\u201d',88,660,W-176,34);
+  // All quips
+  const allQuips=quipCarousel.quips.length?quipCarousel.quips:($('quip-text').textContent?[$('quip-text').textContent]:[]);
+  if(allQuips.length){
+    let qy=610;
+    allQuips.forEach((q,i)=>{
+      if(i>0){
+        ctx.font='500 18px sans-serif'; ctx.fillStyle='rgba(245,166,35,0.25)';
+        const sep='· · ·'; ctx.fillText(sep,(W-ctx.measureText(sep).width)/2,qy+4);
+        qy+=34;
+      }
+      ctx.font='italic 500 24px sans-serif'; ctx.fillStyle='rgba(34,211,238,0.75)';
+      qy=wrapText(ctx,'\u201c'+q+'\u201d',88,qy,W-176,34);
+    });
   }
 
   // Branding
@@ -1851,6 +1921,7 @@ function wrapText(ctx,text,x,y,maxW,lh){
   const words=text.split(' ');let line='';
   for(const w of words){const t=line+w+' ';if(ctx.measureText(t).width>maxW&&line){ctx.fillText(line.trim(),x,y);line=w+' ';y+=lh;}else line=t;}
   ctx.fillText(line.trim(),x,y);
+  return y+lh;
 }
 
 // ── UI helpers ────────────────────────────────────────────────────────────────
