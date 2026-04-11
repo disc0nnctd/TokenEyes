@@ -2,44 +2,43 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TokenEyes — "No thanks, I'm watching my tokens."</title>
   <meta name="description" content="Point your camera at any price. See what it costs in AI tokens. That $6 coffee? 1.2 million Claude tokens." />
   <meta property="og:title" content="TokenEyes" />
   <meta property="og:description" content="&quot;Do you wanna split this?&quot; — &quot;No thanks, I’m watching my tokens.&quot;" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Space+Mono:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
     :root{
-      --bg:#060810;
-      --s1:#0b0d18;
-      --s2:#10131f;
-      --s3:#161928;
-      --bd:rgba(255,255,255,0.065);
-      --bd2:rgba(255,255,255,0.12);
-      --amber:#f5a623;
-      --as:rgba(245,166,35,0.10);
-      --ab:rgba(245,166,35,0.28);
-      --cyan:#22d3ee;
-      --cs:rgba(34,211,238,0.08);
+      --bg:#070b14;
+      --s1:#0f1424;
+      --s2:#131b31;
+      --s3:#19233f;
+      --bd:rgba(155,181,255,0.15);
+      --bd2:rgba(155,181,255,0.34);
+      --amber:#ff8558;
+      --as:rgba(255,133,88,0.16);
+      --ab:rgba(255,133,88,0.40);
+      --cyan:#60d4ff;
+      --cs:rgba(96,212,255,0.15);
       --green:#22c55e;
       --yellow:#fbbf24;
-      --text:#edeade;
-      --mu:rgba(237,233,222,0.44);
-      --mu2:rgba(237,233,222,0.22);
-      --r:12px;--r2:18px;--r3:22px;
+      --text:#eef4ff;
+      --mu:rgba(238,244,255,0.62);
+      --mu2:rgba(238,244,255,0.36);
+      --r:10px;--r2:16px;--r3:20px;
     }
 
     html{scroll-behavior:smooth}
 
     body{
       background:var(--bg);color:var(--text);
-      font-family:'Plus Jakarta Sans',-apple-system,sans-serif;
+      font-family:'Manrope',-apple-system,sans-serif;
       min-height:100dvh;
-      display:flex;flex-direction:column;align-items:center;
       overflow-x:hidden;
     }
 
@@ -50,32 +49,116 @@
       background-size:300px 300px;
     }
 
-    .app{position:relative;z-index:1;width:100%;max-width:480px;padding-bottom:60px;display:flex;flex-direction:column}
+    /* ── App shell ── */
+    .app{
+      position:relative;z-index:1;
+      width:100%;max-width:520px;margin:0 auto;
+      padding-bottom:60px;
+      display:flex;flex-direction:column;
+    }
+
+    /* ── App body (sidebar + main, flex column on mobile) ── */
+    .app-body{display:flex;flex-direction:column;flex:1}
+
+    /* ── Main panel ── */
+    .main-panel{display:flex;flex-direction:column}
 
     /* ── Header ── */
-    .hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 14px 10px}
-    .logo{display:flex;align-items:center;gap:9px}
+    .hdr{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:12px 16px;
+    }
+    .logo{display:flex;align-items:center;gap:10px}
     .logo-mark{
-      width:30px;height:30px;display:block;flex-shrink:0;
+      width:32px;height:32px;display:block;flex-shrink:0;
       object-fit:cover;border-radius:9px;
       filter:drop-shadow(0 0 10px rgba(245,166,35,.22));
     }
-    .logo-text{font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;letter-spacing:.15em;color:var(--text)}
+    .logo-text{font-family:'Sora',sans-serif;font-size:.95rem;font-weight:800;letter-spacing:.15em;color:var(--text)}
     .hdr-right{display:flex;align-items:center;gap:6px}
 
     .hdr-btn{
-      height:44px;padding:0 12px;
-      background:var(--s1);border:1px solid var(--bd);border-radius:10px;
+      height:38px;padding:0 12px;
+      background:var(--s1);border:1px solid var(--bd);border-radius:9px;
       color:var(--mu);font-size:.72rem;font-weight:600;
-      cursor:pointer;display:flex;align-items:center;gap:4px;
+      cursor:pointer;display:flex;align-items:center;gap:6px;
       transition:all .15s;font-family:inherit;white-space:nowrap;
     }
     .hdr-btn:hover{color:var(--text);border-color:var(--bd2)}
+    .hdr-btn:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
     .hdr-btn.on{background:var(--as);border-color:var(--ab);color:var(--amber)}
     .hdr-btn.needs-setup{border-color:var(--ab);color:var(--amber);animation:pulse-setup 2.5s ease-in-out infinite}
     @keyframes pulse-setup{0%,100%{box-shadow:0 0 0 0 rgba(245,166,35,0)}50%{box-shadow:0 0 0 4px rgba(245,166,35,.18)}}
 
-    /* quip mode toggle (in settings drawer) */
+    /* ── Drawers (mobile collapsible) ── */
+    .drawer{overflow:hidden;max-height:0;transition:max-height .32s cubic-bezier(.4,0,.2,1)}
+    .drawer.open{max-height:1200px}
+    .drawer-body{
+      background:var(--s1);border:1px solid var(--bd);border-radius:var(--r2);
+      margin:0 12px 8px;padding:16px;
+      font-size:.8rem;color:var(--mu);line-height:1.75;
+    }
+    .drawer-body ul{padding-left:1.1em}
+    .drawer-body li{margin-bottom:4px}
+    .drawer-body strong{color:var(--text)}
+    .drawer-body a{color:var(--amber);text-decoration:none}
+    .drawer-body a:hover{text-decoration:underline}
+
+    /* Settings specifics */
+    .sb{margin-bottom:14px}
+    .sb:last-child{margin-bottom:0}
+    .slbl{font-size:.63rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mu2);margin-bottom:7px}
+    .sinline{display:flex;gap:6px;align-items:center}
+    .shint{font-size:.7rem;color:var(--mu2);margin-top:4px;line-height:1.55}
+    .shint a{color:var(--amber);text-decoration:none}
+    .shint a:hover{text-decoration:underline}
+
+    /* Desktop sidebar title — hidden on mobile */
+    .sidebar-title{display:none;font-size:.63rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--mu2);margin-bottom:18px}
+
+    /* Desktop-only privacy block inside sidebar */
+    .sidebar-privacy{display:none}
+
+    /* ── Pills ── */
+    .pill-row{display:flex;gap:5px;flex-wrap:wrap}
+    .pill{
+      padding:5px 12px;border-radius:99px;border:1px solid var(--bd);background:transparent;
+      color:var(--mu);font-size:.74rem;font-weight:600;
+      cursor:pointer;transition:all .15s;font-family:inherit;
+    }
+    .pill:hover{color:var(--text);border-color:var(--bd2)}
+    .pill:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+    .pill.active{border-color:var(--ab);background:var(--as);color:var(--amber)}
+
+    /* ── Inputs ── */
+    .glass-input{
+      width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);
+      color:var(--text);
+      font-size:1rem; /* 16px prevents iOS auto-zoom */
+      padding:9px 12px;
+      font-family:'Space Mono',monospace;outline:none;
+      transition:border-color .2s,background .2s;
+    }
+    .glass-input:focus{border-color:var(--ab);background:var(--s3)}
+    .glass-input::placeholder{color:var(--mu2);font-family:'Manrope',sans-serif;font-size:.85rem}
+    select.glass-input{
+      appearance:none;-webkit-appearance:none;cursor:pointer;
+      font-family:'Manrope',sans-serif;font-size:.82rem;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23ffffff40' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;
+    }
+    select.glass-input option{background:var(--s2);color:var(--text)}
+
+    .icon-btn{
+      min-width:44px;height:44px;padding:0 10px;
+      background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);
+      color:var(--mu);cursor:pointer;
+      transition:all .15s;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    }
+    .icon-btn:hover{color:var(--text);border-color:var(--bd2)}
+    .icon-btn:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+
+    /* quip mode toggle */
     .quip-mode-row{display:flex;align-items:center;justify-content:flex-start;gap:8px}
     .quip-lite{display:flex;align-items:center;gap:7px;font-size:.75rem;font-weight:500;color:var(--mu);cursor:pointer;user-select:none}
     .quip-lite input{accent-color:var(--amber);width:14px;height:14px;cursor:pointer;color-scheme:dark}
@@ -98,68 +181,39 @@
     }
     .quip-tip-wrap.open .quip-tip-pop{display:block}
 
-    /* ── Drawers ── */
-    .drawer{overflow:hidden;max-height:0;transition:max-height .32s cubic-bezier(.4,0,.2,1)}
-    .drawer.open{max-height:700px}
-    .drawer-body{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r2);margin:0 12px 8px;padding:16px;font-size:.8rem;color:var(--mu);line-height:1.75}
-    .drawer-body ul{padding-left:1.1em}
-    .drawer-body li{margin-bottom:4px}
-    .drawer-body strong{color:var(--text)}
-    .drawer-body a{color:var(--amber);text-decoration:none}
-    .drawer-body a:hover{text-decoration:underline}
-
-    /* settings specifics */
-    .sb{margin-bottom:14px}
-    .sb:last-child{margin-bottom:0}
-    .slbl{font-size:.63rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mu2);margin-bottom:7px}
-    .sinline{display:flex;gap:6px;align-items:center}
-    .shint{font-size:.7rem;color:var(--mu2);margin-top:3px;line-height:1.55}
-    .shint a{color:var(--amber);text-decoration:none}
-    .shint a:hover{text-decoration:underline}
-
-    /* ── Pills ── */
-    .pill-row{display:flex;gap:5px;flex-wrap:wrap}
-    .pill{padding:5px 13px;border-radius:99px;border:1px solid var(--bd);background:transparent;color:var(--mu);font-size:.76rem;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit}
-    .pill:hover{color:var(--text);border-color:var(--bd2)}
-    .pill.active{border-color:var(--ab);background:var(--as);color:var(--amber)}
-
-    /* ── Inputs ── */
-    .glass-input{
-      width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);
-      color:var(--text);font-size:.83rem;padding:9px 12px;
-      font-family:'Space Mono',monospace;outline:none;
-      transition:border-color .2s,background .2s;
-    }
-    .glass-input:focus{border-color:var(--ab);background:var(--s3)}
-    .glass-input::placeholder{color:var(--mu2);font-family:'Plus Jakarta Sans',sans-serif;font-size:.8rem}
-    select.glass-input{
-      appearance:none;-webkit-appearance:none;cursor:pointer;
-      font-family:'Plus Jakarta Sans',sans-serif;font-size:.79rem;
-      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23ffffff40' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-      background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;
-    }
-    select.glass-input option{background:var(--s2);color:var(--text)}
-    .icon-btn{
-      min-width:44px;height:44px;padding:0 10px;
-      background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);
-      color:var(--mu);cursor:pointer;font-size:.9rem;
-      transition:all .15s;display:flex;align-items:center;justify-content:center;flex-shrink:0;
-    }
-    .icon-btn:hover{color:var(--text);border-color:var(--bd2)}
-
     /* ── Viewfinder ── */
-    .vf-wrap{position:relative;margin:4px 12px 0}
+    .vf-wrap{position:relative;margin:6px 12px 0}
     .viewfinder{
       position:relative;border-radius:var(--r3);overflow:hidden;
       background:#000;aspect-ratio:4/3;
       display:flex;align-items:center;justify-content:center;
     }
+    .viewfinder.dragover{
+      box-shadow:0 0 0 2px var(--ab) inset, 0 0 0 6px rgba(245,166,35,.10) inset;
+    }
     #video-preview{width:100%;height:100%;object-fit:cover;display:block}
     #snapshot-canvas{display:none}
     #captured-img{display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
 
-    .cam-empty{display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--mu);font-size:.8rem;text-align:center;padding:20px}
-    .cam-empty-icon{font-size:2.8rem;opacity:.35;margin-bottom:4px}
+    .cam-empty{display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--mu);font-size:.8rem;text-align:center;padding:20px}
+    .cam-empty-icon{opacity:.35;margin-bottom:4px;color:var(--mu)}
+    .cam-empty-msg{line-height:1.5}
+    .cam-retry{
+      margin-top:6px;
+      min-height:40px;
+      padding:0 14px;
+      border-radius:999px;
+      border:1px solid var(--ab);
+      background:var(--as);
+      color:var(--amber);
+      font-size:.74rem;
+      font-weight:700;
+      cursor:pointer;
+      transition:all .15s;
+      font-family:inherit;
+    }
+    .cam-retry:hover{filter:brightness(1.08)}
+    .cam-retry:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 
     /* corners */
     .corners{position:absolute;inset:0;pointer-events:none;z-index:3}
@@ -195,34 +249,73 @@
     }
 
     /* retake overlay */
-    .retake-overlay{display:none;position:absolute;top:0;right:0;z-index:5;padding:12px}
+    .retake-overlay{display:none;position:absolute;top:0;right:0;z-index:5;padding:10px}
     .retake-overlay.show{display:flex}
     .retake-btn{
       background:rgba(0,0,0,.65);border:1px solid rgba(255,255,255,.18);
       border-radius:99px;color:var(--text);font-size:.74rem;font-weight:600;
-      padding:10px 16px;min-height:44px;cursor:pointer;transition:all .15s;font-family:inherit;
-      display:flex;align-items:center;
+      padding:0 14px;height:44px;min-width:44px;cursor:pointer;transition:all .15s;font-family:inherit;
+      display:flex;align-items:center;gap:6px;
     }
     .retake-btn:hover{background:rgba(239,68,68,.3);border-color:rgba(239,68,68,.45)}
+    .retake-btn:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 
     /* flip btn */
     .flip-btn-vf{
-      position:absolute;top:6px;left:6px;z-index:5;
+      position:absolute;top:10px;left:10px;z-index:5;
       width:44px;height:44px;background:rgba(0,0,0,.55);
       border:1px solid rgba(255,255,255,.15);border-radius:50%;
-      color:rgba(255,255,255,.8);font-size:1.05rem;cursor:pointer;
+      color:rgba(255,255,255,.8);cursor:pointer;
       display:flex;align-items:center;justify-content:center;
       transition:all .15s;
     }
     .flip-btn-vf:hover{background:rgba(0,0,0,.78);border-color:rgba(255,255,255,.3)}
     .flip-btn-vf:disabled{opacity:.3;cursor:not-allowed}
+    .flip-btn-vf:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 
     /* ── Controls dock ── */
-    .dock{display:flex;align-items:center;justify-content:space-between;padding:12px 20px 4px}
+    .dock{display:flex;align-items:center;justify-content:space-between;padding:14px 28px 4px}
+    .more-tools{
+      margin:8px 12px 0;
+      border:1px solid var(--bd);
+      border-radius:var(--r);
+      background:var(--s1);
+      overflow:hidden;
+    }
+    .more-tools > summary{
+      list-style:none;
+      cursor:pointer;
+      padding:11px 14px;
+      font-size:.74rem;
+      font-weight:700;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:var(--mu);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .more-tools > summary::-webkit-details-marker{display:none}
+    .more-tools[open] > summary{border-bottom:1px solid var(--bd);color:var(--text)}
+    .more-tools .more-body{padding:12px}
+    .more-tools .more-arrow{font-size:.62rem;color:var(--mu2);transition:transform .2s}
+    .more-tools[open] .more-arrow{transform:rotate(180deg)}
+    .url-row{display:flex;gap:8px;align-items:center}
+    .url-row .glass-input{
+      font-family:'Plus Jakarta Sans',sans-serif;
+      font-size:.84rem;
+      flex:1;
+    }
+    .drop-hint{
+      margin-top:8px;
+      font-size:.69rem;
+      color:var(--mu2);
+      line-height:1.5;
+    }
 
     /* upload */
     .upload-lbl{
-      display:flex;flex-direction:column;align-items:center;gap:4px;
+      display:flex;flex-direction:column;align-items:center;gap:5px;
       cursor:pointer;color:var(--mu);transition:color .15s;
       font-size:.64rem;font-weight:600;letter-spacing:.03em;min-width:64px;
     }
@@ -230,7 +323,7 @@
     .upload-icon{
       width:44px;height:44px;background:var(--s1);border:1px solid var(--bd);
       border-radius:14px;display:flex;align-items:center;justify-content:center;
-      font-size:1.1rem;transition:all .15s;
+      transition:all .15s;
     }
     .upload-lbl:hover .upload-icon{border-color:var(--bd2);background:var(--s2)}
 
@@ -243,25 +336,26 @@
     }
     .capture-btn:active:not(:disabled){transform:scale(.91)}
     .capture-btn:disabled{cursor:not-allowed}
+    .capture-btn:focus-visible{outline:2px solid var(--amber);outline-offset:4px;border-radius:50%}
     .cap-ring{position:absolute;inset:0;border-radius:50%;border:3px solid rgba(255,255,255,.65);transition:border-color .2s}
     .cap-inner{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.92);transition:background .15s}
     .capture-btn:disabled .cap-ring{border-color:rgba(255,255,255,.2)}
     .capture-btn:disabled .cap-inner{background:rgba(255,255,255,.18)}
     .capture-btn:hover:not(:disabled) .cap-inner{background:#fff}
 
-    /* mode toggle */
-
     /* ── Analyze button ── */
     #analyze-btn{
-      display:block;margin:8px 12px 0;width:calc(100% - 24px);
+      display:flex;align-items:center;justify-content:center;gap:8px;
+      margin:10px 12px 0;width:calc(100% - 24px);
       padding:14px 20px;border-radius:var(--r2);border:none;
       background:var(--amber);color:#0a0a0a;
-      font-size:.93rem;font-weight:700;letter-spacing:.05em;
-      cursor:pointer;transition:opacity .15s,background .2s,color .2s,transform .1s;
+      font-size:.93rem;font-weight:700;letter-spacing:.04em;
+      cursor:pointer;transition:opacity .15s,background .2s,transform .1s;
       font-family:inherit;
     }
     #analyze-btn:hover{opacity:.88}
     #analyze-btn:active{transform:scale(.99)}
+    #analyze-btn:focus-visible{outline:2px solid #fff;outline-offset:3px}
     #analyze-btn.inactive{
       background:var(--s2);color:var(--mu2);cursor:pointer;opacity:1;
     }
@@ -408,10 +502,11 @@
     .btn-action{
       flex:1;padding:10px;background:var(--s2);border:1px solid var(--bd);
       border-radius:var(--r);color:var(--mu);font-size:.78rem;font-weight:600;
-      cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;
+      cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;
       transition:all .15s;font-family:inherit;
     }
     .btn-action:hover{color:var(--text);border-color:var(--bd2);background:var(--s3)}
+    .btn-action:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 
     /* rescan */
     .btn-rescan{
@@ -419,22 +514,96 @@
       border:none;border-top:1px solid var(--ab) !important;
       color:var(--amber);font-size:.88rem;font-weight:700;letter-spacing:.04em;
       cursor:pointer;transition:all .15s;font-family:inherit;
+      display:flex;align-items:center;justify-content:center;gap:8px;
     }
     .btn-rescan:hover{background:rgba(245,166,35,.18)}
+    .btn-rescan:focus-visible{outline:2px solid var(--amber);outline-offset:-3px}
 
     /* ── Footer ── */
     footer{position:relative;z-index:1;padding:20px 16px;font-size:.67rem;color:var(--mu2);text-align:center}
     footer a{color:var(--mu2);text-decoration:none}
     footer a:hover{color:var(--mu)}
 
+    /* ── Mobile portrait: full-bleed camera ── */
     @media(max-width:600px){
-      /* Full-bleed portrait viewfinder — feels like a real camera app */
       .vf-wrap{margin:4px 0 0}
       .viewfinder{aspect-ratio:3/4;border-radius:0}
     }
     @media(max-width:380px){
       .table-wrap thead th:nth-child(4),.table-wrap tbody td:nth-child(4){display:none}
       .hero-num{font-size:clamp(2.2rem,15vw,3.2rem)}
+    }
+
+    /* ── Desktop two-column layout ── */
+    @media(min-width:1024px){
+      .app{
+        max-width:1080px;
+        padding-bottom:0;
+        display:grid;
+        grid-template-rows:auto 1fr;
+        grid-template-columns:300px 1fr;
+        grid-template-areas:
+          "header header"
+          "sidebar main";
+        min-height:100dvh;
+      }
+
+      .hdr{
+        grid-area:header;
+        border-bottom:1px solid var(--bd);
+        padding:14px 24px;
+      }
+
+      /* Settings sidebar */
+      #settings-btn{display:none} /* toggle hidden — sidebar always visible */
+      #privacy-toggle{display:none} /* privacy inline in sidebar */
+      #privacy-drawer{display:none}
+
+      .app-body{
+        display:contents; /* children go directly into app grid */
+      }
+
+      #settings-drawer{
+        grid-area:sidebar;
+        /* override drawer animation — always visible */
+        max-height:none !important;
+        overflow:visible !important;
+        border-right:1px solid var(--bd);
+        position:sticky;
+        top:0;
+        height:100dvh;
+        overflow-y:auto !important;
+        display:block !important;
+      }
+
+      #settings-drawer .drawer-body{
+        margin:0;
+        border:none;
+        border-radius:0;
+        background:transparent;
+        padding:20px 18px;
+        height:100%;
+        overflow-y:auto;
+      }
+
+      .sidebar-title{display:block}
+      .sidebar-privacy{display:block;margin-top:24px;padding-top:16px;border-top:1px solid var(--bd)}
+
+      .main-panel{
+        grid-area:main;
+        padding:16px 20px 60px;
+        max-width:680px;
+      }
+
+      .vf-wrap{margin:0}
+      .viewfinder{aspect-ratio:4/3;border-radius:var(--r2)}
+
+      #analyze-btn{margin:10px 0 0;width:100%}
+      #status-bar{margin:10px 0 0}
+      #error-box{margin:10px 0 0}
+      #results{margin:12px 0 0}
+
+      .hero-num{font-size:clamp(2.4rem,4vw,3.8rem)}
     }
 
     /* ── Tier badge (chip variant) ── */
@@ -474,8 +643,14 @@
       <span class="logo-text">TOKENEYES</span>
     </div>
     <div class="hdr-right">
-      <button class="hdr-btn needs-setup" id="settings-btn" aria-expanded="false">⚙ Setup</button>
-      <button class="hdr-btn" id="privacy-toggle" aria-expanded="false">🔒</button>
+      <button class="hdr-btn needs-setup" id="settings-btn" aria-expanded="false" aria-label="Settings">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>
+        Setup
+      </button>
+      <button class="hdr-btn" id="privacy-toggle" aria-expanded="false" aria-label="Privacy info">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Privacy
+      </button>
     </div>
   </header>
 
@@ -494,9 +669,13 @@
     </div>
   </div>
 
-  <!-- ── Settings drawer ── -->
+  <!-- ── App body: settings sidebar + main panel ── -->
+  <div class="app-body">
+
+  <!-- ── Settings drawer (mobile) / sidebar (desktop) ── -->
   <div class="drawer open" id="settings-drawer">
     <div class="drawer-body">
+      <div class="sidebar-title">Settings</div>
 
       <div class="sb">
         <div class="slbl">Access mode</div>
@@ -512,7 +691,7 @@
         <div class="sb">
           <div class="slbl">Vision provider</div>
           <div class="pill-row" role="group">
-            <button class="pill active" data-group="provider" data-val="gemini">✦ Gemini</button>
+            <button class="pill active" data-group="provider" data-val="gemini">Gemini</button>
             <button class="pill" data-group="provider" data-val="openrouter">OpenRouter</button>
             <button class="pill" data-group="provider" data-val="nvidia">NVIDIA</button>
             <button class="pill" data-group="provider" data-val="cloudflare">Cloudflare AI</button>
@@ -575,7 +754,9 @@
           <div class="slbl">API Key</div>
           <div class="sinline">
             <input class="glass-input" id="api-key-input" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your API key…" style="flex:1" />
-            <button class="icon-btn" id="key-toggle-btn" title="Show/hide">👁</button>
+            <button class="icon-btn" id="key-toggle-btn" aria-label="Show/hide key">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
           </div>
           <div class="shint" id="key-hint">Free key → <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a></div>
         </div>
@@ -588,7 +769,9 @@
           <div class="slbl">Access password</div>
           <div class="sinline">
             <input class="glass-input" id="proxy-pwd-input" type="password" autocomplete="off" spellcheck="false" placeholder="Enter access password…" style="flex:1" />
-            <button class="icon-btn" id="proxy-pwd-toggle" title="Show/hide">👁</button>
+            <button class="icon-btn" id="proxy-pwd-toggle" aria-label="Show/hide password">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
           </div>
           <div class="shint">Password provided by the app deployer · uses deployer's API keys</div>
         </div>
@@ -600,22 +783,47 @@
           <span>Sound effects</span>
         </label>
       </div>
+      <details class="more-tools" id="more-tools">
+        <summary>
+          More options
+          <span class="more-arrow">▾</span>
+        </summary>
+        <div class="more-body">
+          <div class="slbl">Paste image URL</div>
+          <div class="url-row">
+            <input class="glass-input" id="image-url-input" type="url" autocomplete="off" spellcheck="false" placeholder="https://example.com/photo.jpg" />
+            <button class="btn-action" id="load-url-btn" type="button" style="max-width:122px;flex:0 0 auto">Load URL</button>
+          </div>
+          <div class="drop-hint">You can also drag-and-drop an image anywhere on the camera frame, or paste an image from clipboard with Ctrl/Cmd+V.</div>
+          <div class="sinline" style="margin-top:12px">
+            <div class="slbl" style="margin-bottom:0;flex:1">Token split</div>
+            <button class="pill" id="split-edit-btn" type="button">Edit ratios</button>
+          </div>
+          <div class="split-inputs" id="split-inputs-row" style="display:none;margin-top:8px">
+            <label>In% <input class="glass-input" type="number" id="split-in" value="30" min="1" max="98" style="width:48px;padding:5px 8px"></label>
+            <label>Think% <input class="glass-input" type="number" id="split-think" value="20" min="0" max="98" style="width:48px;padding:5px 8px"></label>
+            <label>Out% <input class="glass-input" type="number" id="split-out" value="50" min="1" max="98" style="width:48px;padding:5px 8px"></label>
+            <span class="split-total" id="split-total">= 100%</span>
+          </div>
+        </div>
+      </details>
 
-      <div class="sb">
-        <div class="sinline">
-          <div class="slbl" style="margin-bottom:0;flex:1">Token split</div>
-          <button class="pill" id="split-edit-btn" type="button">Edit ratios</button>
-        </div>
-        <div class="split-inputs" id="split-inputs-row" style="display:none;margin-top:8px">
-          <label>In% <input class="glass-input" type="number" id="split-in" value="30" min="1" max="98" style="width:48px;padding:5px 8px"></label>
-          <label>Think% <input class="glass-input" type="number" id="split-think" value="20" min="0" max="98" style="width:48px;padding:5px 8px"></label>
-          <label>Out% <input class="glass-input" type="number" id="split-out" value="50" min="1" max="98" style="width:48px;padding:5px 8px"></label>
-          <span class="split-total" id="split-total">= 100%</span>
-        </div>
+      <!-- Privacy info — only shown in desktop sidebar -->
+      <div class="sidebar-privacy">
+        <div class="slbl">Privacy</div>
+        <ul style="padding-left:1.1em;font-size:.75rem;color:var(--mu);line-height:1.75;list-style:disc">
+          <li><strong>Your API key never leaves your browser.</strong></li>
+          <li>Direct browser → LLM calls. No TokenEyes server in the API path.</li>
+          <li>Nothing logged or stored on our end.</li>
+          <li>LLM providers may log requests per their own policies.</li>
+        </ul>
       </div>
 
     </div>
-  </div>
+  </div><!-- /#settings-drawer -->
+
+  <!-- ── Main panel ── -->
+  <div class="main-panel">
 
   <!-- ── Viewfinder ── -->
   <div class="vf-wrap">
@@ -624,8 +832,11 @@
       <canvas id="snapshot-canvas"></canvas>
       <img id="captured-img" alt="Captured" />
       <div class="cam-empty" id="camera-empty" style="display:none">
-        <div class="cam-empty-icon">📷</div>
-        <div>Camera unavailable<br>Use upload below</div>
+        <div class="cam-empty-icon">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </div>
+        <div class="cam-empty-msg" id="camera-empty-msg">Camera unavailable. Use upload below.</div>
+        <button class="cam-retry" id="cam-retry-btn" type="button">Re-ask camera permission</button>
       </div>
 
       <div class="corners" aria-hidden="true">
@@ -639,17 +850,24 @@
       </div>
 
       <div class="retake-overlay" id="retake-overlay">
-        <button class="retake-btn" id="retake-btn">✕ Retake</button>
+        <button class="retake-btn" id="retake-btn" aria-label="Retake photo">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Retake
+        </button>
       </div>
 
-      <button class="flip-btn-vf" id="flip-btn" title="Flip camera">⟳</button>
+      <button class="flip-btn-vf" id="flip-btn" aria-label="Flip camera">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.5 15a9 9 0 1 0 .5-3.5"/></svg>
+      </button>
     </div>
   </div>
 
   <!-- ── Controls dock ── -->
   <div class="dock">
     <label class="upload-lbl" for="file-input">
-      <div class="upload-icon">📁</div>
+      <div class="upload-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.4 18.4A5 5 0 0 0 18 9h-1.3A8 8 0 1 0 3 16.3"/></svg>
+      </div>
       Upload
     </label>
     <input type="file" id="file-input" accept="image/*" style="display:none" />
@@ -727,19 +945,31 @@
     </details>
 
     <div class="r-actions">
-      <button class="btn-action" id="share-btn">📸 Save image</button>
-      <button class="btn-action" id="copy-btn">🔗 Copy link</button>
+      <button class="btn-action" id="share-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Save image
+      </button>
+      <button class="btn-action" id="copy-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
+        Copy link
+      </button>
     </div>
     <label class="share-photo-lbl">
       <input type="checkbox" id="share-photo-toggle" checked>
       include photo in card
     </label>
 
-    <button class="btn-rescan" id="rescan-btn">◉ Scan something new</button>
+    <button class="btn-rescan" id="rescan-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg>
+      Scan something new
+    </button>
 
-  </div>
+  </div><!-- /#results -->
 
-</div>
+  </div><!-- /.main-panel -->
+  </div><!-- /.app-body -->
+
+</div><!-- /.app -->
 
 <div class="session-bar" id="session-bar">
   <div class="session-left">
@@ -763,6 +993,11 @@
 
 <script>
 'use strict';
+
+// ── Icon SVGs (used by JS to update buttons) ─────────────────────────────────
+const _SVG_EYE = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+const _SVG_EYE_OFF = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.9 17.9A10 10 0 0 1 12 20c-7 0-11-8-11-8a18 18 0 0 1 5.1-5.9M9.9 4.2A9 9 0 0 1 12 4c7 0 11 8 11 8a18 18 0 0 1-2.2 3.2M1 1l22 22"/></svg>`;
+const _SVG_LINK = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>`;
 
 // ── Pricing ───────────────────────────────────────────────────────────────────
 const MODELS = [
@@ -1056,6 +1291,7 @@ const geminiModelRow=$('gemini-model-row'), geminiModelInput=$('gemini-model-inp
 const cfModelRow=$('cf-model-row'), cfModelInput=$('cf-model-input');
 const nvidiaModelRow=$('nvidia-model-row'), nvidiaModelInput=$('nvidia-model-input');
 const videoEl=$('video-preview'), canvas=$('snapshot-canvas'), capturedImg=$('captured-img');
+const cameraEmptyMsg=$('camera-empty-msg');
 const analyzeBtn=$('analyze-btn'), statusBar=$('status-bar'), errorBox=$('error-box');
 const resultsEl=$('results'), bentoGrid=$('bento-grid');
 const heroTagsEl=$('hero-tags');
@@ -1211,7 +1447,13 @@ function playClick() {
     src.buffer=buf; src.connect(g); g.connect(ctx.destination); src.start();
   } catch {}
 }
-$('sound-toggle').addEventListener('change', e => { soundEnabled=!!e.target.checked; });
+const SOUND_KEY = 'tokeneyes-sound-enabled';
+soundEnabled = localStorage.getItem(SOUND_KEY) !== '0';
+$('sound-toggle').checked = soundEnabled;
+$('sound-toggle').addEventListener('change', e => {
+  soundEnabled=!!e.target.checked;
+  localStorage.setItem(SOUND_KEY, soundEnabled ? '1' : '0');
+});
 
 // ── Session tracking ──────────────────────────────────────────────────────────
 const sessionScans = [];
@@ -1376,12 +1618,14 @@ document.querySelectorAll('.pill[data-group]').forEach(btn => {
 $('key-toggle-btn').addEventListener('click', () => {
   const pw = apiKeyInput.type === 'password';
   apiKeyInput.type = pw ? 'text' : 'password';
-  $('key-toggle-btn').textContent = pw ? '🙈' : '👁';
+  $('key-toggle-btn').innerHTML = pw ? _SVG_EYE_OFF : _SVG_EYE;
+  $('key-toggle-btn').setAttribute('aria-label', pw ? 'Hide key' : 'Show key');
 });
 $('proxy-pwd-toggle').addEventListener('click', () => {
   const pw = proxyPwdInput.type === 'password';
   proxyPwdInput.type = pw ? 'text' : 'password';
-  $('proxy-pwd-toggle').textContent = pw ? '🙈' : '👁';
+  $('proxy-pwd-toggle').innerHTML = pw ? _SVG_EYE_OFF : _SVG_EYE;
+  $('proxy-pwd-toggle').setAttribute('aria-label', pw ? 'Hide password' : 'Show password');
 });
 function detectProviderFromKey(key) {
   const k = key.trim();
@@ -1433,20 +1677,79 @@ analyzeBtn.addEventListener('click', () => {
 
 // ── Camera ────────────────────────────────────────────────────────────────────
 async function startCamera() {
-  try {
-    camStream = await navigator.mediaDevices.getUserMedia({video:{facingMode,width:{ideal:1280},height:{ideal:960}},audio:false});
-    videoEl.srcObject = camStream; videoEl.style.display = 'block';
-    $('camera-empty').style.display = 'none';
-    $('flip-btn').disabled = false; $('snap-btn').disabled = false;
-    $('camera-frame').classList.add('live');
-  } catch {
-    videoEl.style.display = 'none';
-    $('camera-empty').style.display = 'flex';
-    $('flip-btn').disabled = true; $('snap-btn').disabled = true;
-    $('camera-frame').classList.remove('live');
+  stopCamera();
+  const md = navigator.mediaDevices;
+  if (!md || !md.getUserMedia) {
+    const msg = window.isSecureContext
+      ? 'Camera API is unavailable in this browser. Use upload below.'
+      : 'Camera needs a secure context. Open with HTTPS or localhost.';
+    showCameraFallback(msg);
+    return;
   }
+  let lastErr = null;
+  const tries = [
+    { video: { facingMode, width: { ideal: 1280 }, height: { ideal: 960 } }, audio: false },
+    { video: { facingMode }, audio: false },
+    { video: true, audio: false },
+  ];
+  for (const c of tries) {
+    try {
+      camStream = await md.getUserMedia(c);
+      videoEl.srcObject = camStream;
+      videoEl.style.display = 'block';
+      $('camera-empty').style.display = 'none';
+      $('flip-btn').disabled = false;
+      $('snap-btn').disabled = false;
+      $('camera-frame').classList.add('live');
+      return;
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  showCameraFallback(describeCameraError(lastErr));
 }
 function stopCamera() { camStream?.getTracks().forEach(t => t.stop()); camStream = null; }
+function showCameraFallback(msg) {
+  videoEl.style.display = 'none';
+  $('camera-empty').style.display = 'flex';
+  $('flip-btn').disabled = true;
+  $('snap-btn').disabled = true;
+  $('camera-frame').classList.remove('live');
+  cameraEmptyMsg.textContent = msg || 'Camera unavailable. Use upload below.';
+}
+async function reaskCameraPermission() {
+  try {
+    const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    s.getTracks().forEach(t => t.stop());
+  } catch (err) {
+    const n = err?.name || '';
+    if (n === 'NotAllowedError' || n === 'PermissionDeniedError') {
+      showCameraFallback('Permission is still blocked. Browser site settings may need camera = Allow.');
+      return;
+    }
+  }
+  startCamera();
+}
+function describeCameraError(err) {
+  if (!err) return 'Camera unavailable. Use upload below.';
+  if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+    return 'Camera access was blocked. Tap re-ask, then allow camera in browser prompt/settings.';
+  }
+  if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+    return 'No camera device found. Use upload below.';
+  }
+  if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+    return 'Camera is busy in another app/tab. Close it and tap re-ask.';
+  }
+  if (err.name === 'OverconstrainedError') {
+    return 'Requested camera mode is unsupported on this device. Tap re-ask.';
+  }
+  if (err.name === 'SecurityError') {
+    return 'Camera requires HTTPS or localhost in this browser.';
+  }
+  return 'Camera unavailable right now. Tap re-ask or use upload below.';
+}
+$('cam-retry-btn').addEventListener('click', () => { reaskCameraPermission(); });
 
 $('flip-btn').addEventListener('click', async () => {
   facingMode = facingMode === 'environment' ? 'user' : 'environment';
@@ -1457,18 +1760,97 @@ $('snap-btn').addEventListener('click', () => {
   playClick();
   canvas.width = videoEl.videoWidth || 640; canvas.height = videoEl.videoHeight || 480;
   canvas.getContext('2d').drawImage(videoEl, 0, 0);
-  imageMime = 'image/jpeg';
-  imageB64 = canvas.toDataURL(imageMime, 0.92).split(',')[1];
-  capturedImg.src = canvas.toDataURL(imageMime, 0.92);
-  showCaptured();
+  const snapUrl = canvas.toDataURL('image/jpeg', 0.92);
+  loadImageFromDataUrl(snapUrl, 'image/jpeg');
 });
 
-$('file-input').addEventListener('change', () => {
-  const f = $('file-input').files[0]; if (!f) return;
+function loadImageFromDataUrl(dataUrl, mime='image/jpeg') {
+  imageMime = mime || 'image/jpeg';
+  imageB64 = dataUrl.split(',')[1];
+  capturedImg.src = dataUrl;
+  showCaptured();
+}
+function loadImageFile(f) {
+  if (!f || !f.type.startsWith('image/')) return;
   imageMime = f.type || 'image/jpeg';
   const r = new FileReader();
-  r.onload = e => { imageB64 = e.target.result.split(',')[1]; capturedImg.src = e.target.result; showCaptured(); };
+  r.onload = e => { loadImageFromDataUrl(e.target.result, imageMime); };
   r.readAsDataURL(f);
+}
+$('file-input').addEventListener('change', () => {
+  const f = $('file-input').files[0];
+  if (!f) return;
+  loadImageFile(f);
+});
+
+async function loadImageFromUrl(url) {
+  if (!url) return;
+  setStatus('Fetching image URL…');
+  try {
+    const res = await fetch(url, { mode: 'cors' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const blob = await res.blob();
+    if (!blob.type.startsWith('image/')) throw new Error('URL did not return an image');
+    imageMime = blob.type || 'image/jpeg';
+    const r = new FileReader();
+    r.onload = e => {
+      clearStatus();
+      loadImageFromDataUrl(e.target.result, imageMime);
+    };
+    r.readAsDataURL(blob);
+  } catch {
+    showError('Could not load that image URL (CORS or invalid image). Try drag/drop, paste, or upload.');
+  }
+}
+$('load-url-btn').addEventListener('click', () => {
+  const url = $('image-url-input').value.trim();
+  if (!url) return;
+  loadImageFromUrl(url);
+});
+$('image-url-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    $('load-url-btn').click();
+  }
+});
+
+const vf = $('camera-frame');
+['dragenter','dragover'].forEach(ev => {
+  vf.addEventListener(ev, (e) => {
+    e.preventDefault();
+    vf.classList.add('dragover');
+  });
+});
+['dragleave','drop'].forEach(ev => {
+  vf.addEventListener(ev, (e) => {
+    e.preventDefault();
+    if (ev === 'drop') {
+      const f = e.dataTransfer?.files?.[0];
+      if (f) loadImageFile(f);
+    }
+    vf.classList.remove('dragover');
+  });
+});
+['dragenter','dragover','drop'].forEach(ev => {
+  document.addEventListener(ev, (e) => {
+    if (ev === 'drop' || ev === 'dragover') e.preventDefault();
+  });
+});
+
+document.addEventListener('paste', (e) => {
+  const active = document.activeElement;
+  if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable)) return;
+  const items = e.clipboardData?.items || [];
+  for (const it of items) {
+    if (it.type && it.type.startsWith('image/')) {
+      const f = it.getAsFile();
+      if (f) {
+        e.preventDefault();
+        loadImageFile(f);
+      }
+      return;
+    }
+  }
 });
 
 function showCaptured() {
@@ -1795,109 +2177,99 @@ $('share-btn').addEventListener('click', async () => {
     });
   }
 
-  const c = $('share-canvas'), W=1080, H=1080;
+  const c = $('share-canvas'), W=1080, H=1440;
   c.width=W; c.height=H; const ctx=c.getContext('2d');
-
-  // Background
-  ctx.fillStyle='#060810'; ctx.fillRect(0,0,W,H);
-  const g1=ctx.createRadialGradient(W/2,H*0.38,0,W/2,H*0.38,560);
-  g1.addColorStop(0,'rgba(245,166,35,0.22)'); g1.addColorStop(1,'transparent');
-  ctx.fillStyle=g1; ctx.fillRect(0,0,W,H);
-  const g2=ctx.createRadialGradient(W*0.85,H*0.85,0,W*0.85,H*0.85,320);
-  g2.addColorStop(0,'rgba(34,211,238,0.10)'); g2.addColorStop(1,'transparent');
-  ctx.fillStyle=g2; ctx.fillRect(0,0,W,H);
-
-  // Card border
-  ctx.strokeStyle='rgba(245,166,35,0.18)'; ctx.lineWidth=1.5;
-  rrect(ctx,44,44,W-88,H-88,28); ctx.stroke();
-
   const {tot}=calcTokens(lastResult.price_usd,MODELS[0]);
   const tier=getTier(tot);
-  const tierColors={'tier-cheap':'#4ade80','tier-spicy':'#f5a623','tier-cursed':'#f87171','tier-cooked':'#e879f9'};
+  const tierColors={'tier-cheap':'#52d67d','tier-spicy':'#f5a623','tier-cursed':'#f87171','tier-cooked':'#e879f9'};
   const tierColor=tierColors[tier.cls]||'#f5a623';
+  const hp = Math.max(10, Math.min(999, Math.round(tot / 10000)));
+  const cardX=64, cardY=64, cardW=W-128, cardH=H-128;
 
-  // Photo thumbnail — top-right, center-cropped
-  const PS=220, PX=W-88-PS, PY=80;
+  // Board background
+  ctx.fillStyle='#060810'; ctx.fillRect(0,0,W,H);
+  const bgA=ctx.createRadialGradient(W*0.2,H*0.15,0,W*0.2,H*0.15,400);
+  bgA.addColorStop(0,'rgba(245,166,35,0.18)'); bgA.addColorStop(1,'transparent');
+  ctx.fillStyle=bgA; ctx.fillRect(0,0,W,H);
+  const bgB=ctx.createRadialGradient(W*0.82,H*0.22,0,W*0.82,H*0.22,440);
+  bgB.addColorStop(0,'rgba(34,211,238,0.16)'); bgB.addColorStop(1,'transparent');
+  ctx.fillStyle=bgB; ctx.fillRect(0,0,W,H);
+
+  // Pokemon-style card shell
+  ctx.fillStyle='#12192b'; rrect(ctx,cardX,cardY,cardW,cardH,36); ctx.fill();
+  ctx.strokeStyle='#dab267'; ctx.lineWidth=8; rrect(ctx,cardX,cardY,cardW,cardH,36); ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,0.12)'; ctx.lineWidth=2; rrect(ctx,cardX+16,cardY+16,cardW-32,cardH-32,28); ctx.stroke();
+
+  // Top name bar
+  const topY = cardY + 38;
+  ctx.font='700 48px "Plus Jakarta Sans", sans-serif';
+  ctx.fillStyle='#f7f3e9';
+  const itemLabel = lastResult.item.length > 26 ? lastResult.item.slice(0,23)+'...' : lastResult.item;
+  ctx.fillText(itemLabel, cardX+40, topY+24, cardW-300);
+  ctx.font='700 34px "Space Mono", monospace';
+  ctx.fillStyle='#ff8d66';
+  const hpText = `HP ${hp}`;
+  const hpW = ctx.measureText(hpText).width;
+  ctx.fillText(hpText, cardX+cardW-40-hpW, topY+18);
+  ctx.font='700 18px "Plus Jakarta Sans", sans-serif';
+  ctx.fillStyle='rgba(255,255,255,0.72)';
+  ctx.fillText('TOKEN TYPE: AI', cardX+cardW-220, topY+48);
+
+  // Art frame
+  const artX = cardX+40, artY = cardY+130, artW = cardW-80, artH = 500;
+  const artGrad = ctx.createLinearGradient(artX, artY, artX+artW, artY+artH);
+  artGrad.addColorStop(0,'#2a3656');
+  artGrad.addColorStop(1,'#1a253f');
+  ctx.fillStyle=artGrad; rrect(ctx,artX,artY,artW,artH,20); ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,0.24)'; ctx.lineWidth=3; rrect(ctx,artX,artY,artW,artH,20); ctx.stroke();
+
   if (photoImg) {
     ctx.save();
-    rrect(ctx,PX,PY,PS,PS,14); ctx.clip();
+    rrect(ctx,artX+10,artY+10,artW-20,artH-20,14); ctx.clip();
     const s=Math.min(photoImg.width,photoImg.height);
     const sx=(photoImg.width-s)/2, sy=(photoImg.height-s)/2;
-    ctx.drawImage(photoImg,sx,sy,s,s,PX,PY,PS,PS);
+    ctx.drawImage(photoImg,sx,sy,s,s,artX+10,artY+10,artW-20,artH-20);
     ctx.restore();
-    ctx.strokeStyle='rgba(245,166,35,0.30)'; ctx.lineWidth=1.5;
-    rrect(ctx,PX,PY,PS,PS,14); ctx.stroke();
+  } else {
+    ctx.fillStyle='rgba(255,255,255,0.12)';
+    ctx.font='700 42px "Syne", sans-serif';
+    const ph='NO PHOTO LOADED';
+    ctx.fillText(ph, artX + (artW-ctx.measureText(ph).width)/2, artY + artH/2 + 14);
   }
 
-  // TOKENEYES brand
-  ctx.font='800 20px sans-serif'; ctx.fillStyle='rgba(245,166,35,0.85)';
-  ctx.fillText('TOKENEYES',88,106);
+  // Price line
+  const priceLine = `${describeDetectedPrice(lastResult)}  ->  ${fmt(tot)} TOKENS`;
+  ctx.fillStyle='rgba(9,12,20,0.88)'; rrect(ctx,artX+20,artY+artH-78,artW-40,52,12); ctx.fill();
+  ctx.strokeStyle='rgba(245,166,35,0.45)'; ctx.lineWidth=2; rrect(ctx,artX+20,artY+artH-78,artW-40,52,12); ctx.stroke();
+  ctx.font='700 26px "Space Mono", monospace'; ctx.fillStyle='#f7f3e9';
+  ctx.fillText(priceLine, artX+36, artY+artH-44, artW-72);
 
-  // Item + price (constrained width when photo present)
-  const itemMaxW = photoImg ? PX-88-20 : W-176;
-  ctx.font='500 26px sans-serif'; ctx.fillStyle='rgba(237,233,222,0.55)';
-  ctx.fillText(lastResult.item+' · '+describeDetectedPrice(lastResult),88,158,itemMaxW);
+  // Moves / abilities
+  const moveX = cardX+40, moveW = cardW-80;
+  const move1Y = artY+artH+28;
+  ctx.fillStyle='rgba(255,255,255,0.06)'; rrect(ctx,moveX,move1Y,moveW,120,14); ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,0.14)'; ctx.lineWidth=2; rrect(ctx,moveX,move1Y,moveW,120,14); ctx.stroke();
+  ctx.font='700 30px "Plus Jakarta Sans", sans-serif'; ctx.fillStyle=tierColor;
+  ctx.fillText('Token Blast', moveX+22, move1Y+44);
+  ctx.font='700 26px "Space Mono", monospace'; ctx.fillStyle='#f7f3e9';
+  ctx.fillText(fmt(tot), moveX+moveW-ctx.measureText(fmt(tot)).width-22, move1Y+44);
+  ctx.font='500 22px "Plus Jakarta Sans", sans-serif'; ctx.fillStyle='rgba(255,255,255,0.76)';
+  ctx.fillText(`Tier effect: ${tier.label.toLowerCase()}`, moveX+22, move1Y+84);
 
-  // Model comparison table — left side, below item
-  const compModels = POPULAR_HERO_MODELS.map(id=>MODELS.find(m=>m.id===id)).filter(Boolean);
-  const compMaxW = photoImg ? PX-88-20 : W-176;
-  const rowH=38, compY0=202;
-  ctx.font='500 21px sans-serif';
-  compModels.forEach((m,i) => {
-    const y=compY0+i*rowH;
-    const {tot:ct}=calcTokens(lastResult.price_usd,m);
-    const isHero=m.id===MODELS[0].id;
-    if(isHero){ctx.fillStyle='rgba(245,166,35,0.07)';rrect(ctx,84,y-22,compMaxW+4,30,6);ctx.fill();}
-    ctx.textAlign='left';
-    ctx.fillStyle=isHero?'rgba(245,166,35,0.9)':'rgba(237,233,222,0.55)';
-    ctx.fillText(m.name,92,y);
-    ctx.textAlign='right';
-    ctx.fillStyle=isHero?'rgba(245,166,35,0.9)':'rgba(237,233,222,0.4)';
-    ctx.fillText(fmt(ct),88+compMaxW,y);
-    if(i<compModels.length-1){ctx.strokeStyle='rgba(255,255,255,0.05)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(88,y+12);ctx.lineTo(88+compMaxW,y+12);ctx.stroke();}
-  });
-  ctx.textAlign='left';
+  const q = quipCarousel.quips.length ? quipCarousel.quips[0] : ($('quip-text').textContent || 'No quip available');
+  const move2Y = move1Y + 140;
+  ctx.fillStyle='rgba(255,255,255,0.05)'; rrect(ctx,moveX,move2Y,moveW,170,14); ctx.fill();
+  ctx.strokeStyle='rgba(96,212,255,0.30)'; ctx.lineWidth=2; rrect(ctx,moveX,move2Y,moveW,170,14); ctx.stroke();
+  ctx.font='700 30px "Plus Jakarta Sans", sans-serif'; ctx.fillStyle='#60d4ff';
+  ctx.fillText('Quip Strike', moveX+22, move2Y+44);
+  ctx.font='italic 500 24px "Plus Jakarta Sans", sans-serif'; ctx.fillStyle='rgba(237,233,222,0.9)';
+  wrapText(ctx,`"${q}"`,moveX+22,move2Y+84,moveW-44,33);
 
-  // Token number — big and centered
-  const tokStr=fmt(tot);
-  ctx.font='700 128px monospace';
-  ctx.fillStyle='#edeade';
-  const tw=ctx.measureText(tokStr).width;
-  ctx.fillText(tokStr,(W-tw)/2,462);
-
-  // Model label
-  ctx.font='700 22px sans-serif'; ctx.fillStyle='rgba(245,166,35,0.75)';
-  const ml=MODELS[0].name.toUpperCase()+' TOKENS';
-  ctx.fillText(ml,(W-ctx.measureText(ml).width)/2,512);
-
-  // Tier badge pill
-  const tierLabel=tier.label.replace('◆ ','');
-  ctx.font='800 18px sans-serif';
-  const tlw=ctx.measureText(tierLabel).width+32;
-  const tx=(W-tlw)/2, ty=542;
-  ctx.fillStyle=tierColor+'22'; rrect(ctx,tx,ty,tlw,34,17); ctx.fill();
-  ctx.strokeStyle=tierColor+'55'; ctx.lineWidth=1; rrect(ctx,tx,ty,tlw,34,17); ctx.stroke();
-  ctx.fillStyle=tierColor;
-  ctx.fillText(tierLabel,tx+16,ty+23);
-
-  // All quips
-  const allQuips=quipCarousel.quips.length?quipCarousel.quips:($('quip-text').textContent?[$('quip-text').textContent]:[]);
-  if(allQuips.length){
-    let qy=610;
-    allQuips.forEach((q,i)=>{
-      if(i>0){
-        ctx.font='500 18px sans-serif'; ctx.fillStyle='rgba(245,166,35,0.25)';
-        const sep='· · ·'; ctx.fillText(sep,(W-ctx.measureText(sep).width)/2,qy+4);
-        qy+=34;
-      }
-      ctx.font='italic 500 24px sans-serif'; ctx.fillStyle='rgba(34,211,238,0.75)';
-      qy=wrapText(ctx,'\u201c'+q+'\u201d',88,qy,W-176,34);
-    });
-  }
-
-  // Branding
-  ctx.font='500 16px sans-serif'; ctx.fillStyle='rgba(255,255,255,0.18)';
-  ctx.fillText('token-eyes.pages.dev',W-88-ctx.measureText('token-eyes.pages.dev').width,H-66);
+  // Footer strip
+  const footY = cardY + cardH - 84;
+  ctx.fillStyle='rgba(0,0,0,0.28)'; rrect(ctx,cardX+24,footY,cardW-48,44,10); ctx.fill();
+  ctx.font='700 18px "Space Mono", monospace'; ctx.fillStyle='rgba(255,255,255,0.72)';
+  ctx.fillText('TOKENEYES // PRICE-TO-TOKENS CARD // token-eyes.pages.dev', cardX+40, footY+29, cardW-80);
 
   const a=document.createElement('a');
   a.download=`tokeneyes-${lastResult.item.replace(/\s+/g,'-')}.png`;
@@ -1907,7 +2279,7 @@ $('share-btn').addEventListener('click', async () => {
 $('copy-btn').addEventListener('click', () => {
   navigator.clipboard.writeText(location.href).then(() => {
     $('copy-btn').textContent = '✓ Copied!';
-    setTimeout(() => { $('copy-btn').textContent = '🔗 Copy link'; }, 2000);
+    setTimeout(() => { $('copy-btn').innerHTML = `${_SVG_LINK} Copy link`; }, 2000);
   });
 });
 
