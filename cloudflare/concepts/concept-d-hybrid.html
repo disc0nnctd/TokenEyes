@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TokenEyes Concept D</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --bg: #070d16;
+      --panel: #0d1726;
+      --panel-2: #111f34;
+      --line: rgba(126, 175, 255, 0.22);
+      --text: #eef5ff;
+      --muted: rgba(238, 245, 255, 0.7);
+      --orange: #ff8555;
+      --cyan: #56cbff;
+      --green: #4de8aa;
+    }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 12% 10%, rgba(255,133,85,0.20), transparent 22%),
+        radial-gradient(circle at 86% 12%, rgba(86,203,255,0.19), transparent 24%),
+        linear-gradient(180deg, #050a11, #070d16 58%, #040810);
+      color: var(--text);
+      font-family: "Manrope", sans-serif;
+    }
+    .wrap {
+      width: min(1180px, calc(100vw - 24px));
+      margin: 14px auto;
+      padding: 18px;
+      border-radius: 30px;
+      border: 1px solid var(--line);
+      background: rgba(7, 13, 22, 0.92);
+      box-shadow: 0 28px 90px rgba(0, 0, 0, 0.42);
+    }
+    .top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .brand {
+      text-transform: uppercase;
+      font-size: 0.82rem;
+      letter-spacing: 0.12em;
+      font-weight: 700;
+      color: var(--cyan);
+    }
+    .chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .chip {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 12px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      background: rgba(255,255,255,0.03);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 16px;
+    }
+    .hero, .panel {
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(13,23,38,0.96), rgba(10,18,30,0.96));
+      padding: 20px;
+    }
+    h1 {
+      font-family: "Space Grotesk", sans-serif;
+      margin: 10px 0 10px;
+      font-size: clamp(2.9rem, 6vw, 5.7rem);
+      line-height: 0.93;
+      letter-spacing: -0.04em;
+      max-width: 11ch;
+    }
+    .lede {
+      max-width: 55ch;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .hero-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .mini {
+      border-radius: 18px;
+      padding: 16px;
+      min-height: 130px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .mini strong {
+      display: block;
+      margin-top: 8px;
+      font-size: 1.6rem;
+    }
+    .cta {
+      margin-top: 16px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      min-height: 48px;
+      padding: 0 18px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      transition: transform 180ms ease, border-color 180ms ease;
+      background: rgba(255,255,255,0.03);
+    }
+    .btn:hover { transform: translateY(-2px); border-color: rgba(255,133,85,0.55); }
+    .btn.primary {
+      background: linear-gradient(135deg, rgba(255,133,85,0.20), rgba(86,203,255,0.18));
+    }
+    .stack {
+      display: grid;
+      gap: 12px;
+    }
+    .rows {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 12px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding-top: 10px;
+      align-items: center;
+    }
+    .row:first-child { border-top: 0; padding-top: 0; }
+    .muted { color: var(--muted); }
+    .good { color: var(--green); }
+    @media (max-width: 960px) {
+      .grid, .hero-cards { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .btn { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="top">
+      <div class="brand">Concept D: B + C Hybrid</div>
+      <div class="chips">
+        <div class="chip">Dark utility core</div>
+        <div class="chip">Consumer-friendly highlights</div>
+      </div>
+    </header>
+    <section class="grid">
+      <article class="hero">
+        <h1>Serious core. Shareable face.</h1>
+        <p class="lede">
+          This is the in-between direction you asked for: keep the trust and clarity of `B`, but add the visual bite from `C`
+          so it attracts more non-technical traffic without feeling unserious.
+        </p>
+        <div class="hero-cards">
+          <div class="mini">
+            <div class="muted">Detected price</div>
+            <strong>$14.75</strong>
+          </div>
+          <div class="mini">
+            <div class="muted">Token equivalent</div>
+            <strong>2.9M</strong>
+          </div>
+        </div>
+        <div class="cta">
+          <a class="btn primary" href="#">Scan Price</a>
+          <a class="btn" href="#">Paste Value</a>
+          <a class="btn" href="#">Generate Card</a>
+        </div>
+      </article>
+      <aside class="stack">
+        <section class="panel">
+          <strong>Model spread</strong>
+          <div class="rows">
+            <div class="row"><span class="muted">Claude Sonnet</span><strong>2.9M</strong><span class="good">+12%</span></div>
+            <div class="row"><span class="muted">GPT tier</span><strong>2.3M</strong><span class="good">+8%</span></div>
+            <div class="row"><span class="muted">Gemini tier</span><strong>3.1M</strong><span class="good">+15%</span></div>
+          </div>
+        </section>
+        <section class="panel">
+          <strong>Quip</strong>
+          <p class="muted">"That burrito is two deep-research sessions."</p>
+        </section>
+      </aside>
+    </section>
+  </main>
+</body>
+</html>

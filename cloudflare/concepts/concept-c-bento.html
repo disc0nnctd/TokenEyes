@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TokenEyes Concept C</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --bg: #fff4e8;
+      --card: rgba(255,255,255,0.78);
+      --ink: #1f2240;
+      --muted: rgba(31, 34, 64, 0.68);
+      --line: rgba(31, 34, 64, 0.1);
+      --orange: #ff7a45;
+      --blue: #4169ff;
+      --mint: #54e1b7;
+      --pink: #ff5ca8;
+    }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Manrope", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255,122,69,0.34), transparent 24%),
+        radial-gradient(circle at 85% 15%, rgba(65,105,255,0.24), transparent 18%),
+        radial-gradient(circle at 65% 80%, rgba(84,225,183,0.25), transparent 20%),
+        linear-gradient(180deg, #fff4e8, #fffaf6);
+    }
+    .wrap {
+      width: min(1180px, calc(100vw - 24px));
+      margin: 0 auto;
+      padding: 22px 0 40px;
+    }
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .brand {
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .nav .chip-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .chip {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.5);
+      background: rgba(255,255,255,0.45);
+      backdrop-filter: blur(12px);
+      font-size: 0.82rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 16px;
+    }
+    .card {
+      border-radius: 28px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 18px 60px rgba(31, 34, 64, 0.08);
+      padding: 20px;
+    }
+    .hero h1 {
+      margin: 12px 0 10px;
+      max-width: 10ch;
+      font-family: "Syne", sans-serif;
+      font-size: clamp(3rem, 7vw, 5.8rem);
+      line-height: 0.92;
+      letter-spacing: -0.05em;
+    }
+    .lede {
+      max-width: 52ch;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 1.04rem;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .tile {
+      border-radius: 24px;
+      padding: 18px;
+      min-height: 170px;
+      position: relative;
+      overflow: hidden;
+    }
+    .tile strong {
+      display: block;
+      font-size: clamp(1.4rem, 2vw, 2rem);
+      margin-top: 10px;
+    }
+    .tile p {
+      margin: 8px 0 0;
+      color: inherit;
+      opacity: 0.82;
+      line-height: 1.5;
+    }
+    .orange { background: linear-gradient(135deg, #ff9158, #ff6c63); color: #fff8f2; }
+    .blue { background: linear-gradient(135deg, #5b7cff, #3b51d7); color: #f5f7ff; }
+    .mint { background: linear-gradient(135deg, #65eccc, #54d4b4); }
+    .cream { background: rgba(255,255,255,0.7); }
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+    .btn {
+      min-height: 48px;
+      padding: 0 18px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      text-decoration: none;
+      color: var(--ink);
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      background: rgba(255,255,255,0.8);
+      transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(31,34,64,0.1);
+    }
+    .btn.primary {
+      background: var(--ink);
+      color: white;
+    }
+    .side {
+      display: grid;
+      gap: 16px;
+    }
+    .quote {
+      font-size: 1.45rem;
+      font-weight: 800;
+      line-height: 1.15;
+    }
+    .rows {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.68);
+    }
+    .subgrid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .mini h2, .side h2 {
+      margin: 0 0 10px;
+      font-size: 0.86rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .mini p, .side p {
+      color: var(--muted);
+      line-height: 1.55;
+    }
+    @media (max-width: 980px) {
+      .grid, .hero-grid, .subgrid { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .btn { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="nav">
+      <div class="brand">TokenEyes</div>
+      <div class="chip-row">
+        <div class="chip">Built for shares</div>
+        <div class="chip">Big screenshot energy</div>
+        <div class="chip">Consumer-first</div>
+      </div>
+    </header>
+
+    <section class="grid">
+      <article class="card hero">
+        <div class="chip-row">
+          <div class="chip">See prices differently</div>
+        </div>
+        <h1>Your lunch can buy a storm of tokens.</h1>
+        <p class="lede">
+          This direction is less austere and more magnetic. It turns TokenEyes into a colorful, card-driven experience that
+          feels native to social feeds and creator shout-outs, without collapsing into childish UI.
+        </p>
+
+        <div class="hero-grid">
+          <section class="tile orange">
+            <div>Detected</div>
+            <strong>$18.00 sushi set</strong>
+            <p>Snap a menu, shelf, or receipt and get a readable conversion instantly.</p>
+          </section>
+          <section class="tile blue">
+            <div>Equivalent</div>
+            <strong>3.6M tokens</strong>
+            <p>The hero number dominates the composition so the joke lands immediately.</p>
+          </section>
+        </div>
+
+        <div class="actions">
+          <a class="btn primary" href="#">Open Camera</a>
+          <a class="btn" href="#">Drop a Photo</a>
+          <a class="btn" href="#">Generate Share Card</a>
+        </div>
+      </article>
+
+      <aside class="side">
+        <section class="card mint">
+          <h2>Quip</h2>
+          <div class="quote">“That pastry is a mid-sized context window.”</div>
+        </section>
+        <section class="card cream">
+          <h2>Model Reaction Board</h2>
+          <div class="rows">
+            <div class="row"><span>Claude Sonnet</span><strong>3.6M</strong></div>
+            <div class="row"><span>Gemini Pro</span><strong>2.8M</strong></div>
+            <div class="row"><span>GPT tier</span><strong>3.1M</strong></div>
+          </div>
+        </section>
+      </aside>
+    </section>
+
+    <section class="subgrid">
+      <article class="card mini">
+        <h2>Growth Angle</h2>
+        <p>This is the easiest concept to package for social traffic, short videos, and lightweight creator referrals.</p>
+      </article>
+      <article class="card mini">
+        <h2>Visual Language</h2>
+        <p>Bento cards, sharper color blocks, and stronger visual hooks make the product feel alive before the user taps anything.</p>
+      </article>
+      <article class="card mini">
+        <h2>Risk</h2>
+        <p>If pushed too far, this can look novelty-first. The fix is disciplined type, fewer gimmicks, and premium spacing.</p>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

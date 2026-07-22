@@ -70,10 +70,16 @@
     }
     .logo{display:flex;align-items:center;gap:10px}
     .logo-mark{
-      width:32px;height:32px;display:block;flex-shrink:0;
-      object-fit:cover;border-radius:9px;
-      filter:drop-shadow(0 0 10px rgba(245,166,35,.22));
+      width:32px;height:32px;display:grid;place-items:center;flex-shrink:0;
+      border-radius:11px;border:1px solid var(--ab);
+      background:
+        radial-gradient(circle at 28% 28%, rgba(255,133,88,.20), transparent 58%),
+        linear-gradient(145deg, rgba(18,26,43,.98), rgba(10,14,24,.98));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+      color:var(--amber);
     }
+    .logo-mark svg{width:18px;height:18px;display:block}
+    .logo-mark .mark-dot{fill:var(--cyan)}
     .logo-text{font-family:'Sora',sans-serif;font-size:.95rem;font-weight:800;letter-spacing:.15em;color:var(--text)}
     .hdr-right{display:flex;align-items:center;gap:6px}
 
@@ -360,6 +366,8 @@
       background:var(--s2);color:var(--mu2);cursor:pointer;opacity:1;
     }
     #analyze-btn.inactive:hover{background:var(--s3);color:var(--mu)}
+    #analyze-btn:disabled{cursor:not-allowed}
+    #analyze-btn:disabled:hover{opacity:1}
 
     /* ── Status / Error ── */
     #status-bar{
@@ -427,6 +435,23 @@
     }
     .hero-tag:hover{color:var(--text);border-color:var(--bd2)}
     .hero-tag.active{border-color:var(--ab);background:var(--as);color:var(--amber)}
+    .hero-picker{display:flex;align-items:center;gap:8px;margin-top:10px}
+    .hero-picker-label{
+      font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mu2);
+      white-space:nowrap;
+    }
+    .hero-picker select{
+      flex:1;min-width:0;
+      padding:8px 34px 8px 10px;border-radius:12px;border:1px solid var(--bd);
+      background:
+        linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23ffffff52' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+        no-repeat right 12px center / 10px 6px;
+      color:var(--text);font:600 .72rem 'Manrope',-apple-system,sans-serif;
+      appearance:none;-webkit-appearance:none;cursor:pointer;
+    }
+    .hero-picker select:hover{border-color:var(--bd2)}
+    .hero-picker select:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 
     /* facts grid */
     .r-facts{display:grid;grid-template-columns:1fr 1fr}
@@ -478,7 +503,7 @@
     .table-wrap tbody tr:hover{background:rgba(255,255,255,.02)}
     .table-wrap td{padding:8px 14px;text-align:right;white-space:nowrap}
     .table-wrap td:first-child{text-align:left;font-weight:600}
-    .ci{color:#86efac}.co{color:#fde68a}.cr{color:#c4b5fd}
+    .ci{color:#86efac}.co{color:#fde68a}.cr{color:#c4b5fd}.ck{color:#7dd3fc}
     .ct{color:var(--text);font-weight:700}.cq{color:var(--mu);font-size:.7rem}
     .nd{color:rgba(255,255,255,.15)}
     .table-note{margin:8px 14px 10px;font-size:.65rem;color:var(--mu2);line-height:1.5}
@@ -491,6 +516,18 @@
     .split-inputs label{display:flex;align-items:center;gap:5px;font-size:.63rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mu2)}
     .split-total{margin-left:4px;font-size:.6rem;font-weight:700;color:var(--mu2)}
     .split-total.err{color:#f87171}
+    .profile-pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+    .profile-hint{margin-top:6px;font-size:.66rem;color:var(--mu2);line-height:1.5}
+    .reverse-row{display:flex;justify-content:center;margin-top:10px}
+    .reverse-toggle{background:none;border:0;padding:4px;cursor:pointer;font:inherit;
+      font-size:.72rem;color:var(--mu);text-decoration:underline;text-underline-offset:3px}
+    .reverse-toggle:hover{color:var(--text)}
+    .reverse-toggle:focus-visible{outline:2px solid #fff;outline-offset:3px;border-radius:4px}
+    .reverse-panel{margin-top:10px;padding:12px;border:1px solid var(--s3);border-radius:12px}
+    .reverse-inputs{display:flex;gap:8px;align-items:center}
+    .reverse-inputs #reverse-currency{flex:0 0 92px;padding:8px}
+    .reverse-inputs #reverse-amount{flex:1;min-width:0;padding:8px}
+    .reverse-hint{margin-top:8px;font-size:.66rem;color:var(--mu2)}
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button{display:none}
     input[type=number]{-moz-appearance:textfield}
@@ -639,7 +676,13 @@
   <!-- ── Header ── -->
   <header class="hdr">
     <div class="logo">
-      <img class="logo-mark" src="./assets/tokeneyes.jpg" alt="TokenEyes logo" />
+      <span class="logo-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M2.5 12s3.6-5.5 9.5-5.5 9.5 5.5 9.5 5.5-3.6 5.5-9.5 5.5S2.5 12 2.5 12Z" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="12" cy="12" r="2.9" class="mark-dot"/>
+          <circle cx="12" cy="12" r="1.2" fill="#09101a"/>
+        </svg>
+      </span>
       <span class="logo-text">TOKENEYES</span>
     </div>
     <div class="hdr-right">
@@ -678,10 +721,10 @@
       <div class="sidebar-title">Settings</div>
 
       <div class="sb">
-        <div class="slbl">Access mode</div>
+        <div class="slbl">Connection</div>
         <div class="pill-row" role="group">
-          <button class="pill active" data-group="access" data-val="own">Own key</button>
-          <button class="pill" data-group="access" data-val="shared">Shared key</button>
+          <button class="pill active" data-group="access" data-val="own">Your key</button>
+          <button class="pill" data-group="access" data-val="shared">Shared demo</button>
         </div>
       </div>
 
@@ -689,7 +732,7 @@
       <div id="own-key-section">
 
         <div class="sb">
-          <div class="slbl">Vision provider</div>
+          <div class="slbl">Provider</div>
           <div class="pill-row" role="group">
             <button class="pill active" data-group="provider" data-val="gemini">Gemini</button>
             <button class="pill" data-group="provider" data-val="openrouter">OpenRouter</button>
@@ -699,7 +742,7 @@
         </div>
 
         <div class="sb" id="gemini-model-row">
-          <div class="slbl">Vision model</div>
+          <div class="slbl">Model</div>
           <select class="glass-input" id="gemini-model-input">
             <option value="gemini-2.5-flash">Gemini 2.5 Flash — fast &amp; cheap (default)</option>
             <option value="gemini-2.5-pro">Gemini 2.5 Pro — best quality</option>
@@ -708,12 +751,12 @@
 
 
         <div class="sb" id="openai-config-row" style="display:none">
-          <div class="slbl">Vision model</div>
+          <div class="slbl">Model</div>
           <select class="glass-input" id="or-model-input"></select>
         </div>
 
         <div class="sb" id="cf-model-row" style="display:none">
-          <div class="slbl">Vision model</div>
+          <div class="slbl">Model</div>
           <select class="glass-input" id="cf-model-input">
             <option value="@cf/google/gemma-4-26b-a4b-it">Gemma 4 26B — recommended</option>
             <option value="@cf/meta/llama-4-scout-17b-16e-instruct">Llama 4 Scout 17B — fast multimodal</option>
@@ -723,28 +766,28 @@
         </div>
 
         <div class="sb" id="nvidia-model-row" style="display:none">
-          <div class="slbl">Vision model</div>
+          <div class="slbl">Model</div>
           <select class="glass-input" id="nvidia-model-input"></select>
         </div>
 
         <div class="sb">
-          <div class="slbl">Perspective style</div>
+          <div class="slbl">Quips</div>
           <div class="quip-mode-row">
             <label class="quip-lite" for="quip-simple-toggle">
               <input id="quip-simple-toggle" type="checkbox" />
-              <span>Simple mode</span>
+              <span>Skip quips</span>
             </label>
             <span class="quip-tip-wrap" id="quip-tip-wrap">
               <button
                 class="quip-tip"
                 id="quip-tip-btn"
                 type="button"
-                aria-label="About Simple mode"
+                aria-label="About quips"
                 aria-expanded="false"
                 aria-controls="quip-tip-pop">?</button>
               <div class="quip-tip-pop" id="quip-tip-pop" role="tooltip">
-                Normal: quips are generated alongside the price scan — same call, no extra cost.
-                Simple: skips quip generation entirely (slightly faster, saves a few tokens).
+                Off: include the one-line joke with the token math.
+                On: just read the price and show the clean token breakdown.
               </div>
             </span>
           </div>
@@ -758,7 +801,7 @@
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
           </div>
-          <div class="shint" id="key-hint">Free key → <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a></div>
+          <div class="shint" id="key-hint">Get a free key → <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a></div>
         </div>
 
       </div>
@@ -766,14 +809,14 @@
       <!-- Shared key section (hidden by default) -->
       <div id="shared-key-section" style="display:none">
         <div class="sb">
-          <div class="slbl">Access password</div>
+          <div class="slbl">Shared password</div>
           <div class="sinline">
             <input class="glass-input" id="proxy-pwd-input" type="password" autocomplete="off" spellcheck="false" placeholder="Enter access password…" style="flex:1" />
             <button class="icon-btn" id="proxy-pwd-toggle" aria-label="Show/hide password">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
           </div>
-          <div class="shint">Password provided by the app deployer · uses deployer's API keys</div>
+          <div class="shint">Password from the deployer · uses the deployer's provider keys</div>
         </div>
       </div>
 
@@ -785,7 +828,7 @@
       </div>
       <details class="more-tools" id="more-tools">
         <summary>
-          More options
+          Advanced
           <span class="more-arrow">▾</span>
         </summary>
         <div class="more-body">
@@ -794,15 +837,18 @@
             <input class="glass-input" id="image-url-input" type="url" autocomplete="off" spellcheck="false" placeholder="https://example.com/photo.jpg" />
             <button class="btn-action" id="load-url-btn" type="button" style="max-width:122px;flex:0 0 auto">Load URL</button>
           </div>
-          <div class="drop-hint">You can also drag-and-drop an image anywhere on the camera frame, or paste an image from clipboard with Ctrl/Cmd+V.</div>
+          <div class="drop-hint">You can also drag an image onto the camera frame, or paste one from the clipboard with Ctrl/Cmd+V.</div>
           <div class="sinline" style="margin-top:12px">
-            <div class="slbl" style="margin-bottom:0;flex:1">Token split</div>
-            <button class="pill" id="split-edit-btn" type="button">Edit ratios</button>
+            <div class="slbl" style="margin-bottom:0;flex:1">Token math</div>
+            <button class="pill" id="split-edit-btn" type="button">Edit split</button>
           </div>
+          <div class="profile-pills" id="profile-pills"></div>
+          <div class="profile-hint" id="profile-hint"></div>
           <div class="split-inputs" id="split-inputs-row" style="display:none;margin-top:8px">
-            <label>In% <input class="glass-input" type="number" id="split-in" value="30" min="1" max="98" style="width:48px;padding:5px 8px"></label>
-            <label>Think% <input class="glass-input" type="number" id="split-think" value="20" min="0" max="98" style="width:48px;padding:5px 8px"></label>
-            <label>Out% <input class="glass-input" type="number" id="split-out" value="50" min="1" max="98" style="width:48px;padding:5px 8px"></label>
+            <label>In% <input class="glass-input" type="number" id="split-in" value="25" min="0" max="100" style="width:48px;padding:5px 8px"></label>
+            <label>Cached% <input class="glass-input" type="number" id="split-cache" value="0" min="0" max="100" style="width:48px;padding:5px 8px"></label>
+            <label>Think% <input class="glass-input" type="number" id="split-think" value="15" min="0" max="100" style="width:48px;padding:5px 8px"></label>
+            <label>Out% <input class="glass-input" type="number" id="split-out" value="60" min="0" max="100" style="width:48px;padding:5px 8px"></label>
             <span class="split-total" id="split-total">= 100%</span>
           </div>
         </div>
@@ -880,7 +926,20 @@
   </div>
 
   <!-- ── Analyze ── -->
-  <button id="analyze-btn" class="inactive">— Enter API key to start —</button>
+  <button id="analyze-btn" class="inactive">Capture or upload an image</button>
+
+  <!-- ── Reverse mode: an AI bill, priced in real things. Needs no API key. ── -->
+  <div class="reverse-row">
+    <button class="reverse-toggle" id="reverse-toggle" type="button">Already spent it? Price an AI bill in real things →</button>
+  </div>
+  <div class="reverse-panel" id="reverse-panel" style="display:none">
+    <div class="reverse-inputs">
+      <select class="glass-input" id="reverse-currency" aria-label="Currency"></select>
+      <input class="glass-input" id="reverse-amount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="47.00" aria-label="Amount spent on AI" />
+      <button class="btn-action" id="reverse-go" type="button" style="flex:0 0 auto;max-width:110px">Convert</button>
+    </div>
+    <div class="reverse-hint">No API key needed — this one runs entirely in your browser.</div>
+  </div>
 
   <!-- ── Status / Error ── -->
   <div id="status-bar"><div class="spinner"></div><span id="status-text">Analyzing…</span></div>
@@ -906,9 +965,14 @@
       <div class="hero-num" id="hero-number">—</div>
       <div class="hero-sub" id="hero-model"></div>
       <div class="hero-tags" id="hero-tags"></div>
+      <div class="hero-picker">
+        <label class="hero-picker-label" for="hero-model-select">More models</label>
+        <select id="hero-model-select" aria-label="Select comparison model"></select>
+      </div>
       <div class="hero-view-row" id="hero-view-row" style="display:none">
         <button class="hero-view active" type="button" data-view="tot">ALL</button>
         <button class="hero-view" type="button" data-view="inp">IN</button>
+        <button class="hero-view" type="button" data-view="cch">CACHED</button>
         <button class="hero-view" type="button" data-view="reas">THINK</button>
         <button class="hero-view" type="button" data-view="out">OUT</button>
       </div>
@@ -935,12 +999,12 @@
       <div class="table-wrap">
         <table>
           <thead><tr>
-            <th>Model</th><th class="ci">Input</th><th class="co">Output</th>
+            <th>Model</th><th class="ci">Input</th><th class="ck">Cached</th><th class="co">Output</th>
             <th class="cr">Reasoning</th><th class="ct">Total</th><th class="cq">~Req</th>
           </tr></thead>
           <tbody id="token-tbody"></tbody>
         </table>
-        <p class="table-note">Split adjustable in settings. Defaults: 30% input / 20% reasoning / 50% output. Real usage varies — chat skews input-heavy; agentic/code work skews output &amp; reasoning.</p>
+        <p class="table-note">Pick a workload profile in settings, or set your own split. Cached input bills at ~10% of the normal rate, which is why a coding agent stretches a dollar so much further than chat. Thinking tokens bill at the output rate. A dash means the model has no cached or thinking tier.</p>
       </div>
     </details>
 
@@ -1000,35 +1064,67 @@ const _SVG_EYE_OFF = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none
 const _SVG_LINK = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>`;
 
 // ── Pricing ───────────────────────────────────────────────────────────────────
+// Prices in USD per 1M tokens, refreshed 2026-07-22.
+// Claude Sonnet 5 is at its introductory $2/$10 tier (list $3/$15 from 2026-09-01).
+// `cache` is the cached-input (prompt-cache read) rate. `reasoning` is the rate
+// thinking tokens bill at — providers meter those as output, so it tracks
+// `output`, not `input`. null means the model has no thinking mode.
 const MODELS = [
-  { id:'claude-sonnet-4-6',     name:'Claude Sonnet 4.6',     input:3.00,  output:15.00, reasoning:3.00  },
-  { id:'claude-opus-4-6',       name:'Claude Opus 4.6',       input:5.00,  output:25.00, reasoning:5.00  },
-  { id:'claude-haiku-4-5',      name:'Claude Haiku 4.5',      input:1.00,  output:5.00,  reasoning:1.00  },
-  { id:'gemini-2.5-pro',        name:'Gemini 2.5 Pro',        input:1.25,  output:10.00, reasoning:1.25  },
-  { id:'gemini-2.5-flash',      name:'Gemini 2.5 Flash',      input:0.30,  output:2.50,  reasoning:0.25  },
-  { id:'gemini-2.5-flash-lite', name:'Gemini 2.5 Flash-Lite', input:0.10,  output:0.40,  reasoning:null  },
-  { id:'gpt-5',                 name:'GPT-5',                 input:1.25,  output:10.00, reasoning:null  },
-  { id:'gpt-4o',                name:'GPT-4o',                input:2.50,  output:10.00, reasoning:null  },
-  { id:'o4-mini',               name:'o4-mini',               input:1.10,  output:4.40,  reasoning:1.10  },
-  { id:'gpt-4o-mini',           name:'GPT-4o Mini',           input:0.15,  output:0.60,  reasoning:null  },
+  { id:'claude-sonnet-5',       name:'Claude Sonnet 5',       input:2.00,  cache:0.20,  output:10.00, reasoning:10.00 },
+  { id:'claude-fable-5',        name:'Claude Fable 5',        input:10.00, cache:1.00,  output:50.00, reasoning:50.00 },
+  { id:'claude-opus-4-8',       name:'Claude Opus 4.8',       input:5.00,  cache:0.50,  output:25.00, reasoning:25.00 },
+  { id:'claude-sonnet-4-6',     name:'Claude Sonnet 4.6',     input:3.00,  cache:0.30,  output:15.00, reasoning:15.00 },
+  { id:'claude-haiku-4-5',      name:'Claude Haiku 4.5',      input:1.00,  cache:0.10,  output:5.00,  reasoning:5.00  },
+  { id:'gpt-5-6-sol',           name:'GPT-5.6 Sol',           input:5.00,  cache:0.50,  output:30.00, reasoning:30.00 },
+  { id:'gpt-5-6-terra',         name:'GPT-5.6 Terra',         input:2.50,  cache:0.25,  output:15.00, reasoning:15.00 },
+  { id:'gpt-5-6-luna',          name:'GPT-5.6 Luna',          input:1.00,  cache:0.10,  output:6.00,  reasoning:6.00  },
+  { id:'gpt-5-4-mini',          name:'GPT-5.4 Mini',          input:0.75,  cache:0.075, output:4.50,  reasoning:null  },
+  { id:'gpt-5-4-nano',          name:'GPT-5.4 Nano',          input:0.20,  cache:0.02,  output:1.25,  reasoning:null  },
+  { id:'gemini-3-pro',          name:'Gemini 3 Pro',          input:2.00,  cache:0.20,  output:12.00, reasoning:12.00 },
+  { id:'gemini-3-flash',        name:'Gemini 3 Flash',        input:0.50,  cache:0.05,  output:3.00,  reasoning:3.00  },
+  { id:'gemini-2.5-flash',      name:'Gemini 2.5 Flash',      input:0.30,  cache:0.03,  output:2.50,  reasoning:2.50  },
+  { id:'gemini-2.5-flash-lite', name:'Gemini 2.5 Flash-Lite', input:0.10,  cache:0.01,  output:0.40,  reasoning:null  },
+  { id:'kimi-k3',               name:'Kimi K3',               input:3.00,  cache:0.30,  output:15.00, reasoning:null  },
+  { id:'deepseek-v4',           name:'DeepSeek V4 Pro',       input:0.435, cache:0.0435,output:0.87,  reasoning:null  },
+  { id:'deepseek-v4-flash',     name:'DeepSeek V4 Flash',     input:0.14,  cache:0.014, output:0.28,  reasoning:null  },
+];
+
+const DEFAULT_HERO_MODEL_ID = 'claude-sonnet-5';
+
+// How a real request splits its tokens. Percentages are of the token budget, not
+// of spend — a coding agent re-reads a big cached prefix every turn, which is why
+// its cached share dwarfs everything else.
+const WORKLOAD_PROFILES = [
+  { id:'agent', name:'Coding agent', hint:'big cached prefix re-read each turn', input:10, cache:55, reasoning:15, output:20 },
+  { id:'chat',  name:'Chat',         hint:'short prompts, chatty answers',       input:25, cache:0,  reasoning:15, output:60 },
+  { id:'rag',   name:'RAG',          hint:'long retrieved context, short answer', input:30, cache:45, reasoning:5,  output:20 },
+  { id:'batch', name:'One-shot',     hint:'no history, no thinking',              input:40, cache:0,  reasoning:0,  output:60 },
 ];
 
 function calcTokens(usd, m) {
   const hasR = m.reasoning != null;
-  const ri=splitRatio.input/100, rr=splitRatio.reasoning/100, ro=splitRatio.output/100;
-  const base=ri+ro||1;
-  const sp = hasR ? {input:ri,reasoning:rr,output:ro} : {input:ri/base,output:ro/base};
-  const inp  = Math.floor(usd*sp.input/m.input*1e6);
-  const out  = Math.floor(usd*sp.output/m.output*1e6);
-  const reas = hasR ? Math.floor(usd*sp.reasoning/m.reasoning*1e6) : null;
-  const tot  = inp+out+(reas??0);
-  const bpt  = tot>0 ? usd/tot : 0;
-  const req  = bpt>0 ? Math.floor(usd/(bpt*1000)) : 0;
-  return {inp,out,reas,tot,req};
+  const hasC = m.cache != null;
+  // Fold unsupported buckets into the nearest supported one so every profile
+  // stays at 100% of the budget regardless of model capability.
+  let ri=splitRatio.input, rc=splitRatio.cache, rr=splitRatio.reasoning, ro=splitRatio.output;
+  if (!hasC) { ri+=rc; rc=0; }
+  if (!hasR) { ro+=rr; rr=0; }
+  const sum = ri+rc+rr+ro || 1;
+  const inp   = Math.floor(usd*(ri/sum)/m.input*1e6);
+  const cch   = hasC ? Math.floor(usd*(rc/sum)/m.cache*1e6) : null;
+  const out   = Math.floor(usd*(ro/sum)/m.output*1e6);
+  const reas  = hasR ? Math.floor(usd*(rr/sum)/m.reasoning*1e6) : null;
+  const tot   = inp+out+(reas??0)+(cch??0);
+  const bpt   = tot>0 ? usd/tot : 0;
+  const req   = bpt>0 ? Math.floor(usd/(bpt*1000)) : 0;
+  return {inp,cch,out,reas,tot,req};
 }
 
-const FX_RATE_SOURCE = 'ECB euro reference rates';
-const FX_RATE_DATE = '2026-04-07';
+// Pinned fallback. /fx refreshes these at runtime; these values only apply if
+// that route is unreachable (e.g. a static-only deploy with no worker).
+let FX_RATE_SOURCE = 'ECB euro reference rates (pinned)';
+let FX_RATE_DATE = '2026-04-07';
+let FX_RATES = null;
 const ECB_EUR_RATES = Object.freeze({
   USD:1.1557, JPY:184.73, CZK:24.531, DKK:7.4725, GBP:0.87258, HUF:382.30, PLN:4.2753,
   RON:5.0954, SEK:10.9900, CHF:0.9242, ISK:143.80, NOK:11.1830, TRY:51.5551, AUD:1.6665,
@@ -1127,7 +1223,46 @@ function bestFromSet(refs, tot) {
   };
 }
 
+// ── Real-world comparisons (reverse mode) ─────────────────────────────────────
+// Rough global-average USD prices. Precision is not the point; recognisability is.
+const REFS_REAL = [
+  {usd:1200, emoji:'💻',singular:'decent laptop',      plural:'decent laptops'},
+  {usd:800,  emoji:'📱',singular:'flagship phone',     plural:'flagship phones'},
+  {usd:200,  emoji:'🎧',singular:'pair of headphones', plural:'pairs of headphones'},
+  {usd:70,   emoji:'🎮',singular:'new video game',     plural:'new video games'},
+  {usd:25,   emoji:'👕',singular:'plain T-shirt',      plural:'plain T-shirts'},
+  {usd:20,   emoji:'🍕',singular:'large pizza',        plural:'large pizzas'},
+  {usd:15,   emoji:'🎬',singular:'cinema ticket',      plural:'cinema tickets'},
+  {usd:5,    emoji:'☕',singular:'flat white',         plural:'flat whites'},
+];
+
+function bestRealWorld(usd) {
+  const candidates = REFS_REAL
+    .map(r=>({...r, count:usd/r.usd}))
+    .filter(r=>r.count>=0.8&&r.count<50000);
+  if (!candidates.length) return null;
+  candidates.sort((a,b)=>Math.abs(Math.log10(a.count)-1)-Math.abs(Math.log10(b.count)-1));
+  const r = candidates[0];
+  return {
+    emoji: r.emoji, count: r.count,
+    label: r.count>=1.5 ? `${fmtClean(r.count)} ${r.plural}` : `${Math.round(r.count*100)}% of one ${r.singular}`,
+  };
+}
+
 function getFunFacts(tot) {
+  if (reverseMode && lastResult?.price_usd != null) {
+    // The bill is the input, so the interesting comparison runs the other way:
+    // what that money would have bought you in the physical world.
+    const cheap = bestRealWorld(lastResult.price_usd);
+    const rest = REFS_REAL
+      .map(r=>({...r, count:lastResult.price_usd/r.usd}))
+      .filter(r=>r.count>=1 && r.singular!==cheap?.singular)
+      .sort((a,b)=>b.usd-a.usd)[0];
+    const second = rest
+      ? {emoji:rest.emoji, count:rest.count, label:`${fmtClean(rest.count)} ${rest.plural}`}
+      : null;
+    return [cheap, second, bestFromSet(REFS_DEV, tot)].filter(Boolean);
+  }
   return [bestFromSet(REFS_DEV, tot), bestFromSet(REFS_WORK, tot)].filter(Boolean);
 }
 
@@ -1161,22 +1296,25 @@ function canonicalizeCurrency(value){
   if(raw==='₱')return 'PHP';
   if(raw==='฿')return 'THB';
   const cleaned=raw.toUpperCase().replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim();
-  if(cleaned==='EUR'||cleaned==='USD'||Object.prototype.hasOwnProperty.call(ECB_EUR_RATES, cleaned))return cleaned;
+  const known=(t)=>t&&Object.prototype.hasOwnProperty.call(t, cleaned);
+  if(cleaned==='EUR'||cleaned==='USD'||known(FX_RATES)||known(ECB_EUR_RATES))return cleaned;
   return CURRENCY_ALIASES[cleaned] || null;
 }
 function usdPerUnit(currency){
   const code=canonicalizeCurrency(currency);
   if(!code)return null;
+  const table = FX_RATES || ECB_EUR_RATES;
   if(code==='USD')return 1;
-  if(code==='EUR')return ECB_EUR_RATES.USD;
-  const eurToCode=ECB_EUR_RATES[code];
-  return eurToCode ? ECB_EUR_RATES.USD / eurToCode : null;
+  if(code==='EUR')return table.USD;
+  const eurToCode=table[code];
+  return eurToCode ? table.USD / eurToCode : null;
 }
 function roundMoney(v){ return Math.round((v + Number.EPSILON) * 100) / 100; }
 function normalizeVisionResult(data){
   if(!data || typeof data!=='object')return null;
   const currency=canonicalizeCurrency(data.currency);
   const fallbackUsd=num(data.price_usd);
+  const resaleUsd=num(data.resale_usd);
   let price=num(data.price);
   if(price==null && currency==='USD')price=fallbackUsd;
   let priceUsd=fallbackUsd, exchangeRate=null;
@@ -1188,6 +1326,7 @@ function normalizeVisionResult(data){
     item:typeof data.item==='string' && data.item.trim() ? data.item.trim() : 'unknown item',
     price,
     price_usd:priceUsd,
+    resale_usd:resaleUsd,
     currency,
     confidence:typeof data.confidence==='string' ? data.confidence : 'none',
     exchange_rate:exchangeRate,
@@ -1252,19 +1391,26 @@ const AUTO_PROMPT_BASE = `Look at this image carefully.
 For "resale_usd": estimate what this item could realistically sell for secondhand in USD today. Set to null for food, drinks, tickets, or consumables.
 If nothing identifiable: {"item":"<what you see>","price":null,"currency":null,"price_usd":null,"resale_usd":null,"confidence":"none","quips":[]}`;
 
-function buildPrompt(country) {
+function buildPrompt() {
   const n = quipCount;
   const schema = `{"item":"<identified product>","price":<number>,"currency":"<3-letter code>","price_usd":<usd amount>,"resale_usd":<usd amount or null>,"confidence":"read|estimated","quips":["<quip1>","<quip2>","<quip3>"]}`;
+  const noQuipSchema = `{"item":"<identified product>","price":<number>,"currency":"<3-letter code>","price_usd":<usd amount>,"confidence":"read|estimated"}`;
   if (simpleMode) {
-    const noQuipSchema = schema.replace(/,"resale_usd":[^,}]*/,'').replace(/,"quips":\[.*?\]/,'');
     return `${AUTO_PROMPT_BASE}\n\nReturn ONLY valid JSON (no markdown):\n${noQuipSchema}`;
   }
-  const locNote = country && n>1 ? ` One quip must be a joke only someone in ${country} would feel in their bones.`
-                : country ? ` Make it land specifically for someone in ${country}.` : '';
-  const sep = n>1 ? ' Each quip should hit from a different angle.' : '';
-  const resaleNote = n>1 ? ` If resale_usd is non-null, one quip must be a flip/resale angle — state what you could sell it for and convert that to tokens too (e.g. "Flip it for $X = Y tokens profit").` : '';
-  // ~200k tokens per USD on Claude Sonnet 4.6 at default split (30% input / 20% reasoning / 50% output)
-  return `${AUTO_PROMPT_BASE}\n\nReturn ONLY valid JSON (no markdown):\n${schema}\n\nFor the "quips" field: this app converts prices to AI token counts. Every $1 USD ≈ 200,000 Claude Sonnet tokens. Estimate the price in USD (convert if needed), compute the token count (e.g. $5 = 1M tokens, $50 = 10M tokens), then write exactly ${n} short funny one-liner${n>1?'s':''} about that token count — what could someone do with that many AI tokens instead of buying this thing. Under 90 chars each. Exactly ${n} strings in the array.${resaleNote}${locNote}${sep} No quotes, no parenthetical labels inside the strings.`;
+  // Rates for Claude Sonnet 5 at the app's own workload profiles: chat pays full
+  // freight, a coding agent re-reads a cached prefix at ~10% of the input rate.
+  const rateNote = `Conversion: at chat rates $1 USD ≈ 200,000 Claude Sonnet tokens. A coding agent gets ≈ 2,800,000 tokens for the same $1, because its context is prompt-cached at a tenth of the price. So the same money buys about 14x more work if you are an agent than if you are a person typing.`;
+  const unitNote = `Useful sizes to compare against, so the joke lands on something concrete instead of a big number: a commit message ≈ 600 tokens, a stack-trace walkthrough ≈ 1,600, a refactor plan ≈ 3,500, a README ≈ 8,000, a test suite for a module ≈ 20,000, a PR review with full context ≈ 45,000, a deep debug session ≈ 90,000, an architecture doc ≈ 180,000.`;
+  const craftNote = `What makes these land: pick ONE concrete unit from that list and say how many of them this purchase is worth, or aim at the specific thing being bought. A number on its own is not a joke. Be dry and deadpan, not zany — no exclamation marks, no puns on the product name, no "imagine if".`;
+  const angleNote = n>1
+    ? ` Give each quip a different angle. One: measure the item against a concrete work unit above. Two: use the agent-vs-human rate gap — the buyer is paying retail for attention that an agent rents at a bulk discount. Three: buyer regret, ownership hassle, checkout pain, shelf life, or resale.`
+    : ' Make the single line the sharpest roast of this exact purchase, measured against one concrete work unit.';
+  const resaleNote = n>1 ? ` If resale_usd is non-null, one quip should use the flip angle and convert the resale value to tokens too.` : '';
+  const specificityNote = ` Every quip must be unmistakably about THIS item — what it is for, who buys it, how it ages. If a line would still work with the product name swapped for any other expensive object, rewrite it.`;
+  const banNote = ' Never use these crutches or close variants: write a novel, movie script, poems, haikus, fan fiction, tweets, chat with AI for X, chat minutes, generate images, train a tiny AI, elevator music, "that is a lot of tokens", "your wallet is crying", anything about touching grass.';
+  const varietyNote = n>1 ? ' No duplicates, no near-duplicates, and no two quips may start with the same first two words.' : '';
+  return `${AUTO_PROMPT_BASE}\n\nReturn ONLY valid JSON (no markdown):\n${schema}\n\nFor the "quips" field: this app prices real-world purchases in AI tokens. ${rateNote}\n\n${unitNote}\n\n${craftNote}\n\nEstimate the price in USD (convert if needed), work out the token count, then write exactly ${n} deadpan one-liner${n>1?'s':''} under 90 characters each. Exactly ${n} strings in the array.${angleNote}${resaleNote}${specificityNote}${banNote}${varietyNote} No quotes, no parenthetical labels inside the strings.`;
 }
 
 
@@ -1278,9 +1424,11 @@ let imageB64=null, imageMime='image/jpeg';
 let camStream=null, facingMode='environment', lastResult=null;
 let simpleMode=false, detectedCountry=null, quipCount=3;
 let useSharedKey=false;
-let selectedHeroModelId = MODELS[0].id;
+let selectedHeroModelId = DEFAULT_HERO_MODEL_ID;
 let tokenView = 'tot';
-let splitRatio = {input:30, reasoning:20, output:50};
+let splitRatio = {input:25, cache:0, reasoning:15, output:60};
+let workloadProfileId = 'chat';
+let reverseMode = false;
 
 // ── DOM ───────────────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
@@ -1295,17 +1443,62 @@ const cameraEmptyMsg=$('camera-empty-msg');
 const analyzeBtn=$('analyze-btn'), statusBar=$('status-bar'), errorBox=$('error-box');
 const resultsEl=$('results'), bentoGrid=$('bento-grid');
 const heroTagsEl=$('hero-tags');
+const heroModelSelect=$('hero-model-select');
 const scanOverlay=$('scan-overlay'), retakeOverlay=$('retake-overlay');
 const settingsDrawer=$('settings-drawer'), settingsBtn=$('settings-btn');
 const quipTipWrap=$('quip-tip-wrap'), quipTipBtn=$('quip-tip-btn');
 
 const POPULAR_HERO_MODELS = [
-  'claude-sonnet-4-6',
-  'gpt-5',
-  'gemini-2.5-pro',
-  'gpt-4o',
-  'claude-haiku-4-5',
+  'claude-sonnet-5',
+  'claude-opus-4-8',
+  'claude-fable-5',
+  'gpt-5-6-sol',
+  'gemini-3-pro',
 ];
+
+function getDefaultHeroModel() {
+  return MODELS.find(m => m.id === DEFAULT_HERO_MODEL_ID) || MODELS[0];
+}
+
+function getSelectedHeroModel() {
+  return MODELS.find(m => m.id === selectedHeroModelId) || getDefaultHeroModel();
+}
+
+function updateHeroModelSummary(sel, result) {
+  const target = result || lastResult;
+  if (!target?.price_usd) return;
+  const usd = formatMoney(target.price_usd, 'USD');
+  const local = formatOriginalPrice(target);
+  $('hero-model').textContent = local && target.currency !== 'USD'
+    ? `${usd} of ${sel.name} usage · from ${local} at ECB FX ${FX_RATE_DATE}`
+    : `equivalent to ${usd} of ${sel.name} usage`;
+}
+
+function syncHeroModelControls() {
+  heroTagsEl.querySelectorAll('.hero-tag').forEach(tag => {
+    tag.classList.toggle('active', tag.dataset.modelId === selectedHeroModelId);
+  });
+  if (heroModelSelect.value !== selectedHeroModelId) heroModelSelect.value = selectedHeroModelId;
+}
+
+function applyHeroModelSelection(modelId, dur=650) {
+  if (!MODELS.some(m => m.id === modelId)) modelId = getDefaultHeroModel().id;
+  selectedHeroModelId = modelId;
+  syncHeroModelControls();
+  updateHeroModelSummary(getSelectedHeroModel());
+  updateHeroDisplay(dur);
+}
+
+heroModelSelect.innerHTML = MODELS.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+heroModelSelect.value = selectedHeroModelId;
+heroModelSelect.addEventListener('change', (e) => {
+  if (!lastResult?.price_usd) {
+    selectedHeroModelId = e.target.value;
+    syncHeroModelControls();
+    return;
+  }
+  applyHeroModelSelection(e.target.value);
+});
 
 // ── Quip mode (Normal / Simple) ───────────────────────────────────────────────
 function applyQuipMode() {
@@ -1340,9 +1533,131 @@ document.addEventListener('keydown', (e) => {
 
 // ── Quip carousel ─────────────────────────────────────────────────────────────
 const quipCarousel = {quips:[], idx:0, timer:null};
+const BORING_QUIP_PATTERNS = [
+  /\bwrite (?:a|the|another)? ?(?:short )?novel\b/i,
+  /\bmovie script\b/i,
+  /\bhaikus?\b/i,
+  /\bpoems?\b/i,
+  /\bshort stories?\b/i,
+  /\bfan fiction\b/i,
+  /\btweets?\b/i,
+  /\bchat with ai\b/i,
+  /\bchat minutes?\b/i,
+  /\belevator music\b/i,
+  /\btrain (?:a|your) (?:small|tiny) ai\b/i,
+  /\bgenerate (?:\d[\d,]*|endless|a whole|million|1000s of )?(?:ai )?(?:images|poems|short stories|elevator music)\b/i,
+  /^that'?s (?:enough|[\d.,]+\s*[mkb]?)/i,
+  /^you could\b/i,
+  /\btouch(?:ing)? grass\b/i,
+  /\bwallet (?:is )?(?:cry|weep|sob)/i,
+  /\bthat(?:'?s| is) a lot of tokens\b/i,
+  /\bimagine if\b/i,
+  /\bbreak the bank\b/i,
+];
 
 function parseQuips(text) {
   return text.split('|||').map(s=>s.trim()).filter(Boolean);
+}
+
+function quipKey(text) {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+function conciseItemLabel(item, max=36) {
+  const clean = String(item || 'this thing').replace(/\s+/g, ' ').trim();
+  return clean.length > max ? clean.slice(0, max - 1).trimEnd() + '…' : clean;
+}
+
+function lowerItemLabel(item, max=36) {
+  const clean = conciseItemLabel(item, max);
+  return clean ? clean.charAt(0).toLowerCase() + clean.slice(1) : 'this thing';
+}
+
+function isBoringQuip(text) {
+  const q = String(text || '').trim();
+  if (!q) return true;
+  if (q.length > 90) return true;
+  return BORING_QUIP_PATTERNS.some(re => re.test(q));
+}
+
+// Fallbacks only fire when the model's own quips get filtered out. Build them
+// from the same concrete comparisons the result card shows, so a fallback still
+// says something specific about this purchase instead of restating the number.
+function fallbackQuips(pd) {
+  if (pd?.price_usd == null) return [];
+  const itemLc = lowerItemLabel(pd.item);
+  const baseModel = getDefaultHeroModel();
+  const total = calcTokens(pd.price_usd, baseModel).tot;
+
+  const dev = bestFromSet(REFS_DEV, total);
+  const work = bestFromSet(REFS_WORK, total);
+
+  // What the same money buys an agent, whose context is prompt-cached.
+  const prevSplit = splitRatio;
+  splitRatio = WORKLOAD_PROFILES.find(p => p.id === 'agent');
+  const agentTotal = calcTokens(pd.price_usd, baseModel).tot;
+  splitRatio = prevSplit;
+  const multiple = total > 0 ? Math.round(agentTotal / total) : 0;
+
+  const lines = [
+    dev ? `One ${itemLc}, or ${dev.label}. The ${itemLc} does not review code.` : null,
+    work ? `Priced the same as ${work.label}, and far worse at deadlines.` : null,
+    multiple > 1
+      ? `An agent gets ${multiple}x more out of this ${itemLc} than you will.`
+      : null,
+    pd.resale_usd != null
+      ? `Flip the ${itemLc} for ${formatMoney(pd.resale_usd, 'USD')} and buy back ${fmt(calcTokens(pd.resale_usd, baseModel).tot)} tokens.`
+      : null,
+    pd.confidence === 'estimated'
+      ? `Nobody priced the ${itemLc}, and it still costs ${fmt(total)} tokens.`
+      : null,
+  ];
+  return lines.filter(line => line && line.length <= 90);
+}
+
+// Reverse mode never calls a provider, so its jokes are written here. Same
+// deadpan register as the scan quips: one concrete noun, no exclamation marks.
+function reverseQuips(pd) {
+  if (pd?.price_usd == null) return [];
+  const model = getSelectedHeroModel();
+  const thing = bestRealWorld(pd.price_usd);
+  const work = bestFromSet(REFS_DEV, calcTokens(pd.price_usd, model).tot);
+  const spend = formatMoney(pd.price_usd, 'USD');
+
+  const prevSplit = splitRatio;
+  splitRatio = WORKLOAD_PROFILES.find(p => p.id === 'agent');
+  const agentTotal = calcTokens(pd.price_usd, model).tot;
+  splitRatio = prevSplit;
+  const chatTotal = calcTokens(pd.price_usd, model).tot;
+  const multiple = chatTotal > 0 ? Math.round(agentTotal / chatTotal) : 0;
+
+  const lines = [
+    thing ? `${spend} on ${model.name}. That was ${thing.label}.` : null,
+    work ? `You bought ${work.label}. No refunds, no leftovers.` : null,
+    thing ? `The ${thing.singular} would still exist tomorrow. The context window will not.` : null,
+    multiple > 1 ? `Run it as an agent and the same ${spend} goes ${multiple}x further.` : null,
+  ];
+  return lines.filter(line => line && line.length <= 90);
+}
+
+function curateQuips(pd, quips) {
+  const kept = [];
+  const seen = new Set();
+  const add = (line) => {
+    const q = String(line || '').trim().replace(/^["'“”]+|["'“”]+$/g, '');
+    if (!q || isBoringQuip(q)) return;
+    const key = quipKey(q);
+    if (!key || seen.has(key)) return;
+    seen.add(key);
+    kept.push(q);
+  };
+  if (reverseMode) {
+    reverseQuips(pd).forEach(add);
+    return kept.slice(0, 3);
+  }
+  (Array.isArray(quips) ? quips : []).forEach(add);
+  fallbackQuips(pd).forEach(add);
+  return kept.slice(0, 3);
 }
 
 function renderQuipDots(n, active) {
@@ -1521,28 +1836,119 @@ $('split-edit-btn').addEventListener('click', () => {
   $('split-edit-btn').classList.toggle('active', open);
 });
 
-// ── Split ratio inputs ────────────────────────────────────────────────────────
-['split-in','split-think','split-out'].forEach(id => {
+// ── Workload profile + split ratio ────────────────────────────────────────────
+function renderTokenTable() {
+  if (!lastResult?.price_usd) return;
+  $('token-tbody').innerHTML=MODELS.map(m=>{
+    const{inp,cch,out,reas,tot,req}=calcTokens(lastResult.price_usd,m);
+    return`<tr><td>${m.name}</td><td class="ci">${fmt(inp)}</td><td class="${cch!=null?'ck':'nd'}">${cch!=null?fmt(cch):'—'}</td><td class="co">${fmt(out)}</td><td class="${reas!=null?'cr':'nd'}">${reas!=null?fmt(reas):'—'}</td><td class="ct">${fmt(tot)}</td><td class="cq">${req.toLocaleString()}</td></tr>`;
+  }).join('');
+}
+
+function syncSplitInputs() {
+  $('split-in').value=splitRatio.input;
+  $('split-cache').value=splitRatio.cache;
+  $('split-think').value=splitRatio.reasoning;
+  $('split-out').value=splitRatio.output;
+  $('split-total').textContent='= 100%';
+  $('split-total').classList.remove('err');
+}
+
+function applyProfile(id) {
+  const p = WORKLOAD_PROFILES.find(x=>x.id===id);
+  if (!p) return;
+  workloadProfileId = id;
+  splitRatio = {input:p.input, cache:p.cache, reasoning:p.reasoning, output:p.output};
+  syncSplitInputs();
+  renderProfilePills();
+  updateHeroDisplay();
+  renderTokenTable();
+}
+
+function renderProfilePills() {
+  const p = WORKLOAD_PROFILES.find(x=>x.id===workloadProfileId);
+  $('profile-pills').innerHTML = WORKLOAD_PROFILES.map(x=>
+    `<button class="pill${x.id===workloadProfileId?' active':''}" type="button" data-profile="${x.id}">${x.name}</button>`
+  ).join('');
+  $('profile-hint').textContent = p
+    ? `${p.name}: ${p.hint} — ${p.input}% input, ${p.cache}% cached, ${p.reasoning}% thinking, ${p.output}% output.`
+    : 'Custom split.';
+}
+
+$('profile-pills').addEventListener('click', e => {
+  const btn = e.target.closest('[data-profile]');
+  if (btn) applyProfile(btn.dataset.profile);
+});
+
+['split-in','split-cache','split-think','split-out'].forEach(id => {
   $(id).addEventListener('input', () => {
     const i=parseInt($('split-in').value)||0;
+    const c=parseInt($('split-cache').value)||0;
     const t=parseInt($('split-think').value)||0;
     const o=parseInt($('split-out').value)||0;
-    const sum=i+t+o;
+    const sum=i+c+t+o;
     const totEl=$('split-total');
     totEl.textContent=`= ${sum}%`;
     totEl.classList.toggle('err', sum!==100);
     if (sum===100) {
-      splitRatio={input:i,reasoning:t,output:o};
+      splitRatio={input:i,cache:c,reasoning:t,output:o};
+      workloadProfileId = WORKLOAD_PROFILES.find(p =>
+        p.input===i && p.cache===c && p.reasoning===t && p.output===o)?.id || 'custom';
+      renderProfilePills();
       updateHeroDisplay();
-      if (lastResult?.price_usd) {
-        $('token-tbody').innerHTML=MODELS.map(m=>{
-          const{inp,out,reas,tot,req}=calcTokens(lastResult.price_usd,m);
-          return`<tr><td>${m.name}</td><td class="ci">${fmt(inp)}</td><td class="co">${fmt(out)}</td><td class="${reas!=null?'cr':'nd'}">${reas!=null?fmt(reas):'—'}</td><td class="ct">${fmt(tot)}</td><td class="cq">${req.toLocaleString()}</td></tr>`;
-        }).join('');
-      }
+      renderTokenTable();
     }
   });
 });
+
+renderProfilePills();
+
+// ── Reverse mode ──────────────────────────────────────────────────────────────
+// Turns an AI bill into real-world things. Runs fully client-side — no provider
+// call, so it works before the user has entered any API key.
+(function initReverseCurrencies(){
+  const sel = $('reverse-currency');
+  const codes = ['USD','EUR','INR','GBP','JPY','AUD','CAD','SGD','BRL','ZAR'];
+  sel.innerHTML = codes.map(c=>`<option value="${c}">${c}</option>`).join('');
+  sel.value = 'USD';
+})();
+
+$('reverse-toggle').addEventListener('click', () => {
+  const panel = $('reverse-panel');
+  const open = panel.style.display === 'none';
+  panel.style.display = open ? '' : 'none';
+  if (open) $('reverse-amount').focus();
+});
+
+function runReverse() {
+  const amount = parseFloat($('reverse-amount').value);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    showError('Enter what you spent, as a number.');
+    return;
+  }
+  const currency = $('reverse-currency').value || 'USD';
+  const rate = usdPerUnit(currency);
+  if (rate == null) { showError(`No exchange rate for ${currency}.`); return; }
+
+  reverseMode = true;
+  const pd = {
+    item: 'your AI bill',
+    price: amount,
+    currency,
+    price_usd: roundMoney(amount * rate),
+    resale_usd: null,
+    confidence: 'read',
+    exchange_rate: rate,
+    exchange_rate_date: FX_RATE_DATE,
+    exchange_rate_source: FX_RATE_SOURCE,
+    quips: [],
+  };
+  lastResult = pd;
+  renderResults(pd, null, 'local · no API call');
+}
+
+$('reverse-go').addEventListener('click', runReverse);
+$('reverse-amount').addEventListener('keydown', e => { if (e.key === 'Enter') runReverse(); });
 
 // Fetch country + config in background
 (async () => {
@@ -1555,6 +1961,19 @@ $('split-edit-btn').addEventListener('click', () => {
   try {
     const r = await fetch('/config');
     if (r.ok) { const d = await r.json(); if (d.quip_count) quipCount = d.quip_count; }
+  } catch {}
+})();
+// Refresh FX. Falls back to the pinned ECB_EUR_RATES table if /fx is unavailable.
+(async () => {
+  try {
+    const r = await fetch('/fx');
+    if (!r.ok) return;
+    const d = await r.json();
+    if (!d?.rates?.USD) return;
+    FX_RATES = d.rates;
+    FX_RATE_DATE = d.date || FX_RATE_DATE;
+    FX_RATE_SOURCE = d.source || FX_RATE_SOURCE;
+    if (lastResult?.price_usd) updateHeroModelSummary(getSelectedHeroModel(), lastResult);
   } catch {}
 })();
 
@@ -1576,15 +1995,18 @@ $('privacy-toggle').addEventListener('click', function() {
 
 // ── Provider pills ────────────────────────────────────────────────────────────
 const HINTS = {
-  gemini:     'Free key → <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>',
-  openrouter: 'Free key → <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a>',
-  nvidia:     'NVIDIA API key → <a href="https://build.nvidia.com/" target="_blank" rel="noopener">build.nvidia.com</a>',
+  gemini:     'Get a free key → <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>',
+  openrouter: 'Get a free key → <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a>',
+  nvidia:     'Get an NVIDIA key → <a href="https://build.nvidia.com/" target="_blank" rel="noopener">build.nvidia.com</a>',
   cloudflare: 'Format: <code>ACCOUNT_ID:API_TOKEN</code> — find both at <a href="https://dash.cloudflare.com" target="_blank" rel="noopener">dash.cloudflare.com</a>',
 };
 const OPENROUTER_MODELS = [
   { id:'openrouter/auto',            name:'Auto — best available free model' },
+  { id:'qwen/qwen2.5-vl-72b-instruct:free', name:'Qwen 2.5 VL 72B (free)' },
+  { id:'qwen/qwen2.5-vl-32b-instruct:free', name:'Qwen 2.5 VL 32B (free)' },
   { id:'google/gemma-3-27b-it:free', name:'Gemma 3 27B (free)' },
-  { id:'google/gemma-3-12b-it:free', name:'Gemma 3 12B (free, slower)' },
+  { id:'meta-llama/llama-3.2-11b-vision-instruct:free', name:'Llama 3.2 11B Vision (free)' },
+  { id:'mistralai/mistral-small-3.1-24b-instruct:free', name:'Mistral Small 3.1 24B (free)' },
 ];
 const NVIDIA_MODELS = [
   { id:'google/gemma-3-27b-it', name:'Gemma 3 27B (Free Endpoint)' },
@@ -1663,8 +2085,14 @@ document.querySelectorAll('.pill[data-group="access"]').forEach(btn => {
 
 function checkReady() {
   const hasImg = !!imageB64;
-  analyzeBtn.classList.toggle('inactive', !hasImg);
-  analyzeBtn.textContent = hasImg ? '◎  Analyze Image' : 'Capture or upload an image';
+  const hasCred = useSharedKey ? !!proxyPwdInput.value.trim() : !!apiKeyInput.value.trim();
+  const ready = hasImg && hasCred;
+  analyzeBtn.classList.toggle('inactive', !ready);
+  analyzeBtn.disabled = !ready;
+  analyzeBtn.setAttribute('aria-disabled', ready ? 'false' : 'true');
+  if (!hasImg) analyzeBtn.textContent = 'Capture or upload an image';
+  else if (!hasCred) analyzeBtn.textContent = useSharedKey ? 'Enter shared password to continue' : 'Add API key in Setup to continue';
+  else analyzeBtn.textContent = '◎  Analyze Image';
   // Show setup nudge on gear button only if no credentials configured at all
   const hasAnyCred = apiKeyInput.value.trim() || proxyPwdInput.value.trim();
   settingsBtn.classList.toggle('needs-setup', !hasAnyCred);
@@ -1672,6 +2100,12 @@ function checkReady() {
 
 analyzeBtn.addEventListener('click', () => {
   if (!imageB64) return;
+  if (useSharedKey ? !proxyPwdInput.value.trim() : !apiKeyInput.value.trim()) {
+    settingsDrawer.classList.add('open');
+    settingsBtn.setAttribute('aria-expanded', 'true');
+    settingsBtn.classList.add('on');
+    return;
+  }
   analyze();
 });
 
@@ -1887,17 +2321,17 @@ async function analyze() {
   const pwd = proxyPwdInput.value.trim();
   // Route through proxy when: shared-key mode, OR own-key mode but no key entered
   const viaProxy = useSharedKey || !key;
-  const proxyPwd = useSharedKey ? pwd : pwd; // shared uses pwd; keyless uses pwd too (may be empty)
+  const proxyPwd = pwd;
   setStatus('Reading image…'); clearResults();
   scanOverlay.classList.add('show');
   $('camera-frame').classList.add('scanning');
   try {
-    const prompt = buildPrompt(detectedCountry);
+    const prompt = buildPrompt();
     let pd, proxyProvider;
     if (viaProxy) {
       if (!proxyPwd) {
         throw Object.assign(
-          new Error('Missing shared password. Enter the password, or switch to Own key and use your API key.'),
+          new Error('Missing shared password. Enter it in Setup, or switch to Your key and use your API key.'),
           { name: 'ApiError' }
         );
       }
@@ -1913,17 +2347,12 @@ async function analyze() {
     } else {
       pd = await callOpenRouter(key, orModel, imageB64, imageMime, prompt);
     }
-    // For non-Gemini providers, try DuckDuckGo as a price signal when model only estimated
-    if (pd?.confidence === 'estimated' && !viaProxy && provider !== 'gemini' && pd?.item) {
-      setStatus('Looking up price…');
-      const hint = await fetchDdgPrice(pd.item);
-      if (hint) { pd.price = hint; pd.price_usd = hint; pd.currency = 'USD'; }
-    }
     if (pd?.price_usd == null) {
       showError(pd?.item ? `Couldn't find a price (saw: "${pd.item}"). Try a clearer image.` : 'No price found. Try a clearer image.');
       return;
     }
     lastResult = pd;
+    reverseMode = false;
     const quip = pd.quips?.length ? pd.quips.join(' ||| ') : null;
     renderResults(pd, quip, proxyProvider ? `shared · ${proxyProvider}` : null);
   } catch(err) {
@@ -2005,7 +2434,7 @@ async function callProxy(pwd,b64,mime,prompt){
     const msg=(e?.error||`Proxy error (${r.status})`).toLowerCase();
     const suggestOwnKey = msg.includes('password') || msg.includes('unauthorized') || msg.includes('missing');
     const pretty = suggestOwnKey
-      ? 'Shared password is missing or invalid. Enter the password, or switch to Own key and use your API key.'
+      ? 'Shared password is missing or invalid. Enter it in Setup, or switch to Your key and use your API key.'
       : (e?.error||`Proxy error (${r.status})`);
     throw Object.assign(new Error(pretty),{name:'ApiError'});
   }
@@ -2019,37 +2448,21 @@ function parseJSON(text){
   try{return normalizeVisionResult(JSON.parse(t));}catch{return null;}
 }
 
-// ── DuckDuckGo price hint (fallback for non-Gemini providers) ─────────────────
-async function fetchDdgPrice(item) {
-  try {
-    const r = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(item+' retail price')}&format=json&no_html=1&kl=us-en`);
-    if (!r.ok) return null;
-    const d = await r.json();
-    const blob = [d.AbstractText, ...(d.RelatedTopics||[]).map(t=>t.Text||''), ...(d.Results||[]).map(t=>t.Text||'')].join(' ');
-    const matches = blob.match(/\$[\d,]+(?:\.\d{2})?/g);
-    if (!matches?.length) return null;
-    for (const ps of matches) {
-      const v = parseFloat(ps.replace(/[$,]/g,''));
-      if (v >= 1 && v <= 100000) return v;
-    }
-  } catch {}
-  return null;
-}
-
 // ── Hero helpers ──────────────────────────────────────────────────────────────
 function heroVal(c) {
   if (tokenView==='inp') return c.inp;
   if (tokenView==='out') return c.out;
   if (tokenView==='reas') return c.reas;
+  if (tokenView==='cch') return c.cch;
   return c.tot;
 }
 function heroViewLabel(name) {
-  const tag = tokenView==='inp'?' INPUT':tokenView==='out'?' OUTPUT':tokenView==='reas'?' REASONING':'';
+  const tag = tokenView==='inp'?' INPUT':tokenView==='out'?' OUTPUT':tokenView==='reas'?' REASONING':tokenView==='cch'?' CACHED':'';
   return name.toUpperCase()+tag+' TOKENS';
 }
 function updateHeroDisplay(dur=650) {
   if (!lastResult?.price_usd) return;
-  const sel = MODELS.find(m=>m.id===selectedHeroModelId)||MODELS[0];
+  const sel = getSelectedHeroModel();
   const c = calcTokens(lastResult.price_usd, sel);
   $('hero-label').textContent = heroViewLabel(sel.name);
   const val = heroVal(c);
@@ -2058,6 +2471,7 @@ function updateHeroDisplay(dur=650) {
   updateTierBadge(tokenView==='tot' ? c.tot : null);
   $('hero-model').style.display = tokenView==='tot' ? '' : 'none';
   document.querySelectorAll('.hero-view[data-view="reas"]').forEach(b=>{b.disabled=sel.reasoning==null;});
+  document.querySelectorAll('.hero-view[data-view="cch"]').forEach(b=>{b.disabled=sel.cache==null||splitRatio.cache===0;});
 }
 
 // ── Render ────────────────────────────────────────────────────────────────────
@@ -2073,14 +2487,10 @@ function renderResults(pd, quip, viaStr) {
     : orModel.split('/').pop().replace(':free','');
   $('r-via').textContent = viaStr || `${provider} · ${viaModel}`;
 
-  if (!MODELS.some(m => m.id === selectedHeroModelId)) selectedHeroModelId = MODELS[0].id;
-  const selectedModel = MODELS.find(m => m.id === selectedHeroModelId) || MODELS[0];
+  if (!MODELS.some(m => m.id === selectedHeroModelId)) selectedHeroModelId = getDefaultHeroModel().id;
+  const selectedModel = getSelectedHeroModel();
   const {tot} = calcTokens(pd.price_usd, selectedModel);
-  const usdLabel = formatMoney(pd.price_usd, 'USD');
-  const localLabel = formatOriginalPrice(pd);
-  $('hero-model').textContent = localLabel && pd.currency !== 'USD'
-    ? `${usdLabel} of ${selectedModel.name} usage · from ${localLabel} at ECB FX ${FX_RATE_DATE}`
-    : `equivalent to ${usdLabel} of ${selectedModel.name} usage`;
+  updateHeroModelSummary(selectedModel, pd);
   $('hero-view-row').style.display = '';
   updateHeroDisplay(1200);
 
@@ -2093,22 +2503,15 @@ function renderResults(pd, quip, viaStr) {
       const btn = document.createElement('button');
       btn.className = 'hero-tag' + (m.id === selectedHeroModelId ? ' active' : '');
       btn.type = 'button';
+      btn.dataset.modelId = m.id;
       btn.textContent = m.name;
       btn.addEventListener('click', () => {
         if (selectedHeroModelId === m.id || !lastResult?.price_usd) return;
-        selectedHeroModelId = m.id;
-        const sel = MODELS.find(x => x.id === selectedHeroModelId) || MODELS[0];
-        const usd = formatMoney(lastResult.price_usd, 'USD');
-        const local = formatOriginalPrice(lastResult);
-        $('hero-model').textContent = local && lastResult.currency !== 'USD'
-          ? `${usd} of ${sel.name} usage · from ${local} at ECB FX ${FX_RATE_DATE}`
-          : `equivalent to ${usd} of ${sel.name} usage`;
-        heroTagsEl.querySelectorAll('.hero-tag').forEach(t => t.classList.remove('active'));
-        btn.classList.add('active');
-        updateHeroDisplay();
+        applyHeroModelSelection(m.id);
       });
       heroTagsEl.appendChild(btn);
     });
+  syncHeroModelControls();
 
   // Fun facts + salary anchor
   bentoGrid.innerHTML = '';
@@ -2136,15 +2539,18 @@ function renderResults(pd, quip, viaStr) {
   pushSession(pd, tot);
 
   // Model table
-  $('token-tbody').innerHTML = MODELS.map(m => {
-    const {inp,out,reas,tot,req} = calcTokens(pd.price_usd, m);
-    return `<tr><td>${m.name}</td><td class="ci">${fmt(inp)}</td><td class="co">${fmt(out)}</td><td class="${reas!=null?'cr':'nd'}">${reas!=null?fmt(reas):'—'}</td><td class="ct">${fmt(tot)}</td><td class="cq">${req.toLocaleString()}</td></tr>`;
-  }).join('');
+  renderTokenTable();
 
-  if (quip) {
-    const quips = parseQuips(quip);
-    startQuipCarousel(quips.length ? quips : [quip]);
-    $('quip-card').style.display = '';
+  if (!simpleMode) {
+    const sourceQuips = Array.isArray(pd.quips) && pd.quips.length ? pd.quips : (quip ? parseQuips(quip) : []);
+    const quips = curateQuips(pd, sourceQuips);
+    if (quips.length) {
+      startQuipCarousel(quips);
+      $('quip-card').style.display = '';
+    } else {
+      stopQuipCarousel();
+      $('quip-card').style.display = 'none';
+    }
   } else {
     stopQuipCarousel();
     $('quip-card').style.display = 'none';
@@ -2177,9 +2583,14 @@ $('share-btn').addEventListener('click', async () => {
     });
   }
 
+  if (document.fonts?.ready) {
+    try { await document.fonts.ready; } catch {}
+  }
+
   const c = $('share-canvas'), W=1080, H=1440;
   c.width=W; c.height=H; const ctx=c.getContext('2d');
-  const {tot}=calcTokens(lastResult.price_usd,MODELS[0]);
+  const shareModel = getSelectedHeroModel();
+  const {tot}=calcTokens(lastResult.price_usd,shareModel);
   const tier=getTier(tot);
   const tierColors={'tier-cheap':'#52d67d','tier-spicy':'#f5a623','tier-cursed':'#f87171','tier-cooked':'#e879f9'};
   const tierColor=tierColors[tier.cls]||'#f5a623';
@@ -2213,7 +2624,7 @@ $('share-btn').addEventListener('click', async () => {
   ctx.fillText(hpText, cardX+cardW-40-hpW, topY+18);
   ctx.font='700 18px "Plus Jakarta Sans", sans-serif';
   ctx.fillStyle='rgba(255,255,255,0.72)';
-  ctx.fillText('TOKEN TYPE: AI', cardX+cardW-220, topY+48);
+  ctx.fillText(shareModel.name.toUpperCase(), cardX+cardW-300, topY+48, 260);
 
   // Art frame
   const artX = cardX+40, artY = cardY+130, artW = cardW-80, artH = 500;
@@ -2269,7 +2680,7 @@ $('share-btn').addEventListener('click', async () => {
   const footY = cardY + cardH - 84;
   ctx.fillStyle='rgba(0,0,0,0.28)'; rrect(ctx,cardX+24,footY,cardW-48,44,10); ctx.fill();
   ctx.font='700 18px "Space Mono", monospace'; ctx.fillStyle='rgba(255,255,255,0.72)';
-  ctx.fillText('TOKENEYES // PRICE-TO-TOKENS CARD // token-eyes.pages.dev', cardX+40, footY+29, cardW-80);
+  ctx.fillText(`TOKENEYES // ${shareModel.name.toUpperCase()} // token-eyes.pages.dev`, cardX+40, footY+29, cardW-80);
 
   const a=document.createElement('a');
   a.download=`tokeneyes-${lastResult.item.replace(/\s+/g,'-')}.png`;

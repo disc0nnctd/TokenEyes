@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TokenEyes Concepts</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Newsreader:opsz,wght@6..72,500;6..72,700&family=Space+Grotesk:wght@500;700&family=Syne:wght@500;700;800&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --bg: #07111f;
+      --panel: rgba(10, 19, 34, 0.82);
+      --line: rgba(255, 255, 255, 0.1);
+      --text: #f7f3eb;
+      --muted: rgba(247, 243, 235, 0.72);
+      --accent: #ff7b54;
+      --accent-2: #78ffd6;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "DM Sans", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(255, 123, 84, 0.28), transparent 28%),
+        radial-gradient(circle at 80% 20%, rgba(120, 255, 214, 0.2), transparent 22%),
+        linear-gradient(180deg, #07111f, #03070d 70%);
+    }
+    .wrap {
+      width: min(1100px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 32px 0 48px;
+    }
+    .hero {
+      padding: 28px;
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: var(--panel);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+    }
+    .eyebrow {
+      display: inline-block;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--accent-2);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 18px 0 12px;
+      max-width: 10ch;
+      font-family: "Syne", sans-serif;
+      font-size: clamp(3rem, 7vw, 5.5rem);
+      line-height: 0.92;
+    }
+    .lede {
+      max-width: 56ch;
+      color: var(--muted);
+      font-size: 1.08rem;
+      line-height: 1.6;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+      margin-top: 22px;
+    }
+    .card {
+      display: block;
+      padding: 22px;
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+      color: inherit;
+      text-decoration: none;
+      transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+      min-height: 270px;
+      position: relative;
+      overflow: hidden;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.06);
+    }
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: auto -30px -60px auto;
+      width: 140px;
+      height: 140px;
+      border-radius: 32px;
+      background: linear-gradient(135deg, rgba(255,123,84,0.4), rgba(120,255,214,0.08));
+      transform: rotate(18deg);
+    }
+    .card h2 {
+      margin: 16px 0 10px;
+      font-size: 1.45rem;
+      position: relative;
+      z-index: 1;
+    }
+    .card p, .card li {
+      color: var(--muted);
+      position: relative;
+      z-index: 1;
+      line-height: 1.55;
+    }
+    ul {
+      margin: 12px 0 0;
+      padding-left: 18px;
+    }
+    .meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 1;
+    }
+    .meta span {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.07);
+      font-size: 12px;
+    }
+    .notes {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 0.96rem;
+    }
+    @media (max-width: 640px) {
+      .wrap { width: min(100vw - 20px, 1100px); padding-top: 20px; }
+      .hero, .card { border-radius: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <span class="eyebrow">TokenEyes Concept Sprint</span>
+      <h1>Seven sharper directions.</h1>
+      <p class="lede">
+        Added 4 more dark-first explorations based on your feedback. The explicit midpoint between `B` and `C` is
+        `Concept D`, plus three random-but-promising variants.
+      </p>
+      <div class="grid">
+        <a class="card" href="./concept-a-editorial.html">
+          <div class="meta">
+            <span>Editorial</span>
+            <span>Curiosity</span>
+            <span>Pressable</span>
+          </div>
+          <h2>Concept A: Price Is a Headline</h2>
+          <p>An editorial front page. Strong for screenshot culture, newsletters, and people who share weird internet tools.</p>
+          <ul>
+            <li>Magazine layout</li>
+            <li>Paper contrast and bold facts</li>
+            <li>Built for memorable first impression</li>
+          </ul>
+        </a>
+        <a class="card" href="./concept-b-signal.html">
+          <div class="meta">
+            <span>Utility</span>
+            <span>Confidence</span>
+            <span>Tech</span>
+          </div>
+          <h2>Concept B: Signal Terminal</h2>
+          <p>A sharper AI-cost console. This treats TokenEyes like a serious money-to-compute instrument instead of a novelty toy.</p>
+          <ul>
+            <li>Dark command-center tone</li>
+            <li>Premium data UI</li>
+            <li>Better fit for builders and AI power users</li>
+          </ul>
+        </a>
+        <a class="card" href="./concept-c-bento.html">
+          <div class="meta">
+            <span>Consumer</span>
+            <span>Viral</span>
+            <span>Playful</span>
+          </div>
+          <h2>Concept C: Social Bento</h2>
+          <p>A brighter growth-oriented direction. Designed to feel like something people show friends, not just use once.</p>
+          <ul>
+            <li>High color energy</li>
+            <li>Clear cards and reactions</li>
+            <li>Best if you want broader traffic</li>
+          </ul>
+        </a>
+        <a class="card" href="./concept-d-hybrid.html">
+          <div class="meta">
+            <span>Hybrid</span>
+            <span>B + C</span>
+            <span>Balanced</span>
+          </div>
+          <h2>Concept D: Hybrid Core</h2>
+          <p>The direct midpoint of B and C. Keeps trust and utility, adds stronger consumer-facing visual energy.</p>
+          <ul>
+            <li>Dark professional base</li>
+            <li>Brighter card accents</li>
+            <li>Best first candidate for production</li>
+          </ul>
+        </a>
+        <a class="card" href="./concept-e-neondeck.html">
+          <div class="meta">
+            <span>Experimental</span>
+            <span>Neon</span>
+            <span>Niche</span>
+          </div>
+          <h2>Concept E: Neon Deck</h2>
+          <p>A sharper cyber aesthetic for a bold brand edge. Not for everyone, but highly distinctive.</p>
+          <ul>
+            <li>HUD style interface</li>
+            <li>Monospace technical tone</li>
+            <li>Strong identity potential</li>
+          </ul>
+        </a>
+        <a class="card" href="./concept-f-monolith.html">
+          <div class="meta">
+            <span>Mature</span>
+            <span>Structured</span>
+            <span>Product</span>
+          </div>
+          <h2>Concept F: Monolith</h2>
+          <p>Hard-edged product design with bold hierarchy. Useful if you want "serious tool" perception fast.</p>
+          <ul>
+            <li>Strong type-led look</li>
+            <li>Minimal visual noise</li>
+            <li>High trust positioning</li>
+          </ul>
+        </a>
+        <a class="card" href="./concept-g-nightshift.html">
+          <div class="meta">
+            <span>Calm</span>
+            <span>Dark</span>
+            <span>Friendly</span>
+          </div>
+          <h2>Concept G: Night Shift</h2>
+          <p>A softer premium dark mode: less terminal, more consumer-friendly while still looking high quality.</p>
+          <ul>
+            <li>Balanced dark palette</li>
+            <li>Readable card rhythm</li>
+            <li>Low-risk redesign path</li>
+          </ul>
+        </a>
+      </div>
+      <p class="notes">Open each concept directly in the browser. I kept them standalone so we can lift the winning visual language into the real app without refactoring first.</p>
+    </section>
+  </main>
+</body>
+</html>

@@ -7,7 +7,11 @@
 - **Your Workers AI binding** — used only by the `/advisor` and `/country` routes handled by `_worker.js`.
   `/advisor` generates quip text (no image data, no user keys). `/country` returns an ISO country code.
   Neither function receives user API keys or image data.
-- **KV namespace** — stores generated quip text strings only. No user data, no images, no keys.
+- **KV namespace** — stores generated quip text strings and the cached FX rate table only.
+  No user data, no images, no keys.
+- **`/fx`** — fetches public ECB reference rates (via Frankfurter) server-side and caches them
+  for 12 hours. Sends nothing about the user. Without the KV binding it still works, just
+  uncached; if the route is unreachable the client falls back to a pinned rate table.
 - **Rate limiting** — the `/advisor` function is naturally rate-limited by Workers AI free tier
   (100k requests/day). If you want additional protection, add a Cloudflare Rate Limiting rule
   on `POST /advisor` in your Pages project settings.
@@ -108,7 +112,7 @@ Free SSL included.
 ## Free advisor quips via `_worker.js` + Workers AI
 
 The `_worker.js` runtime generates the funny quip text using
-**Gemma 3 12B** on Workers AI — completely free, no user key consumed.
+**Gemma 4 26B** on Workers AI — completely free, no user key consumed.
 
 **Setup (Settings → Functions in your Pages project):**
 

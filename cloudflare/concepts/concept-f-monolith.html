@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TokenEyes Concept F</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --bg: #0a0d14;
+      --panel: #111522;
+      --line: rgba(255,255,255,0.12);
+      --text: #f5f6fb;
+      --muted: rgba(245,246,251,0.7);
+      --blue: #5c8dff;
+      --orange: #ff8e4c;
+    }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 10% 10%, rgba(92,141,255,0.16), transparent 22%),
+        radial-gradient(circle at 88% 10%, rgba(255,142,76,0.15), transparent 22%),
+        linear-gradient(180deg, #070a11, #0a0d14 62%, #05070c);
+      color: var(--text);
+      font-family: "IBM Plex Sans", sans-serif;
+    }
+    .container {
+      width: min(1100px, calc(100vw - 24px));
+      margin: 16px auto;
+      padding: 22px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: rgba(12,16,26,0.92);
+      box-shadow: 0 24px 70px rgba(0,0,0,0.4);
+    }
+    .tag {
+      display: inline-block;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 7px 12px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    h1 {
+      margin: 14px 0 10px;
+      font-family: "Archivo", sans-serif;
+      font-size: clamp(3rem, 7vw, 6rem);
+      line-height: 0.9;
+      letter-spacing: -0.03em;
+      max-width: 10ch;
+    }
+    .lede { color: var(--muted); max-width: 58ch; line-height: 1.6; }
+    .board {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .box {
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      padding: 16px;
+      background: rgba(255,255,255,0.03);
+      min-height: 140px;
+    }
+    .box strong {
+      display: block;
+      margin-top: 8px;
+      font-size: 2rem;
+    }
+    .row {
+      margin-top: 14px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      min-height: 46px;
+      padding: 0 16px;
+      border-radius: 12px;
+      text-decoration: none;
+      color: var(--text);
+      border: 1px solid var(--line);
+      display: inline-flex;
+      align-items: center;
+      font-weight: 700;
+    }
+    .btn.primary {
+      background: linear-gradient(135deg, rgba(92,141,255,0.26), rgba(255,142,76,0.22));
+    }
+    @media (max-width: 900px) {
+      .board { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <span class="tag">Concept F: Monolith</span>
+    <h1>Numbers first. Noise last.</h1>
+    <p class="lede">A hard-edged, productized style: bold typography, fewer decorations, and strong action hierarchy. This can make TokenEyes look more mature without becoming boring.</p>
+    <section class="board">
+      <article class="box"><div class="lede">Price</div><strong>$31.20</strong></article>
+      <article class="box"><div class="lede">Tokens</div><strong>6.2M</strong></article>
+      <article class="box"><div class="lede">Top quip</div><strong>"That meal is an agent sprint."</strong></article>
+      <article class="box"><div class="lede">Best for</div><strong>Repeat utility + trust</strong></article>
+    </section>
+    <div class="row">
+      <a class="btn primary" href="#">Start Scan</a>
+      <a class="btn" href="#">Manual Input</a>
+      <a class="btn" href="#">Share Snapshot</a>
+    </div>
+  </main>
+</body>
+</html>

@@ -18,7 +18,11 @@ That $6 latte? 1.2 million Claude Sonnet tokens.
 
 1. **Snap or upload** a photo of anything with a price (tag, menu, receipt, screen)
 2. **Vision AI reads the price** — or guesses it if there's no visible tag
-3. **Instant token breakdown** across 10 AI models with a culturally-aware one-liner
+3. **Instant token breakdown** across 17 AI models with a culturally-aware one-liner
+
+Or run it backwards. **"I spent $47 on Claude this month"** → *9.4 flat whites.*
+Reverse mode needs no API key and makes no network call — it's pure browser math, so
+it works the second the page loads.
 
 ---
 
@@ -35,13 +39,17 @@ That $6 latte? 1.2 million Claude Sonnet tokens.
   - Cloudflare Workers AI (`ACCOUNT_ID:API_TOKEN` format)
 - Shared-key mode via `/proxy` with password protection and provider fallback chain.
 - Per-provider model selectors (Gemini, OpenRouter, NVIDIA, Cloudflare AI).
-- Country-aware quip generation with two quip modes:
-  - Normal mode: uses selected provider.
-  - Simple mode: free backend quips via Workers AI.
+- Provider-generated quips with a skip toggle:
+  - Default: selected provider returns price + item-specific quips in one response.
+  - `Skip quips`: clean token breakdown only.
+- Reverse mode: turn an AI bill into real-world objects, client-side, with no API key.
 - Token economics breakdown:
   - Hero number for primary model token equivalent.
   - Full comparison table across supported models.
-  - Input/output/reasoning token split handling.
+  - Input / cached / thinking / output token split handling.
+  - Four workload profiles (coding agent, chat, RAG, one-shot), or set your own split.
+  - Prompt-cache aware — cached input bills at ~10%, which is most of the story for agents.
+- Live FX: `/fx` refreshes ECB reference rates daily via KV, with a pinned table as fallback.
 - Extra UX features:
   - Animated count-up results
   - Contextual fun facts
@@ -76,20 +84,49 @@ Bring your own key — all have free tiers:
 
 ## Pricing Models
 
-Token counts are **estimates** based on an assumed split of 30% input / 20% reasoning / 50% output (40/60 for models without reasoning tokens). Real-world usage varies: chat workloads tend to be input-heavy due to long system prompts and conversation history; agentic and code workflows skew toward output and reasoning. The split is a general-purpose middle ground, not a measurement.
+Token counts are **estimates**. You pick a workload profile and the math follows from it:
+
+| Profile | Input | Cached | Thinking | Output |
+|---|---|---|---|---|
+| Coding agent | 10% | 55% | 15% | 20% |
+| Chat | 25% | — | 15% | 60% |
+| RAG | 30% | 45% | 5% | 20% |
+| One-shot | 40% | — | — | 60% |
+
+Two things most token calculators get wrong, and this one doesn't:
+
+- **Cached input is ~10% of the normal rate.** A coding agent re-reads a big prompt-cached
+  prefix every single turn, so the same money goes roughly **14x** further than it does in
+  chat. That $6 latte is 1.2M Sonnet 5 tokens of conversation — or 17M tokens of Claude Code.
+- **Thinking tokens bill at the output rate, not the input rate.** Pricing them as input
+  understates reasoning-heavy work by about 5x on Claude models.
+
+Models without a cached or thinking tier get those shares folded into the nearest bucket,
+so every profile always accounts for 100% of the budget. Percentages are of *tokens*, not
+of spend. It's still a made-up split — just an honest one.
+
+Prices below are USD per 1M tokens, verified 2026-07-22. Claude Sonnet 5 is at its
+introductory tier ($3.00 / $15.00 from 2026-09-01).
 
 | Model | Input $/1M | Output $/1M |
 |---|---|---|
+| Claude Fable 5 | $10.00 | $50.00 |
+| Claude Opus 4.8 | $5.00 | $25.00 |
+| Claude Sonnet 5 | $2.00 | $10.00 |
 | Claude Sonnet 4.6 | $3.00 | $15.00 |
-| Claude Opus 4.6 | $5.00 | $25.00 |
 | Claude Haiku 4.5 | $1.00 | $5.00 |
-| Gemini 2.5 Pro | $1.25 | $10.00 |
+| GPT-5.6 Sol | $5.00 | $30.00 |
+| GPT-5.6 Terra | $2.50 | $15.00 |
+| GPT-5.6 Luna | $1.00 | $6.00 |
+| GPT-5.4 Mini | $0.75 | $4.50 |
+| GPT-5.4 Nano | $0.20 | $1.25 |
+| Gemini 3 Pro | $2.00 | $12.00 |
+| Gemini 3 Flash | $0.50 | $3.00 |
 | Gemini 2.5 Flash | $0.30 | $2.50 |
 | Gemini 2.5 Flash-Lite | $0.10 | $0.40 |
-| GPT-5 | $1.25 | $10.00 |
-| GPT-4o | $2.50 | $10.00 |
-| o4-mini | $1.10 | $4.40 |
-| GPT-4o Mini | $0.15 | $0.60 |
+| Kimi K3 | $3.00 | $15.00 |
+| DeepSeek V4 Pro | $0.435 | $0.87 |
+| DeepSeek V4 Flash | $0.14 | $0.28 |
 
 ---
 
@@ -128,7 +165,7 @@ See [cloudflare/DEPLOY.md](./cloudflare/DEPLOY.md) for full instructions includi
 
 - **Receipt mode** — scan a full receipt, see every line item as tokens
 - **Browser extension** — hover any price on any webpage for an instant token tooltip
-- **Reverse mode** — "I have $20 in API credits, what does that buy me in the real world?"
+- **Import a real bill** — drop in a Claude Code / OpenAI usage CSV instead of typing the total
 - **Per-user agent consumption tracking** — log your daily Claude Code / API usage and see it expressed as real-world costs ("this week's agent sessions = 3 lattes")
 - **AR glasses** — real-time price-tag overlay when open camera SDKs become available (Meta Ray-Ban, etc.)
 

@@ -19,8 +19,8 @@ TokenEyes converts real-world prices (read from photos via vision AI) into AI to
 
 ```
 cloudflare/          ← MAIN PRODUCT (Cloudflare Pages static site)
-  index.html         ← entire app: camera, provider config, token math, UI
-  _worker.js         ← active runtime for dynamic routes: /proxy, /advisor, /country
+  index.html         ← entire app: camera, provider config, token math, reverse mode, UI
+  _worker.js         ← active runtime for dynamic routes: /proxy, /advisor, /country, /config, /fx
   functions/
     advisor.js       ← legacy Pages Function copy (runtime logic is in _worker.js)
     country.js       ← legacy Pages Function copy (runtime logic is in _worker.js)
@@ -77,18 +77,33 @@ The Cloudflare Pages app takes keys **in-browser only** — no server, no key lo
 
 ---
 
-## Quip Generation (Two Modes)
+## Quip Generation
 
 The funny one-liner after each result has two paths:
 
-- **Normal mode** (default): calls user's vision provider with a culturally-enriched prompt using `detectedCountry` (from `/country` route in `_worker.js`). Uses ~100 output tokens from user's key.
-- **Simple mode** (toggle in UI): calls `/advisor` route in `_worker.js` → Gemma 4 on Workers AI → KV pool → 25 hardcoded static quips. Zero user quota used.
+- **Default**: the selected vision provider returns price + quips in the same JSON response. Quips should be item-specific and non-generic.
+- **`Skip quips`**: omits the quip field entirely for a clean token-only result.
+- **Legacy**: `/advisor` in `_worker.js` still exists as an old free-quips path, but the current UI does not call it.
 
 ---
 
 ## Pricing Table
 
-`cloudflare/index.html` `MODELS` array and `tokeneyes/pricing.py` `MODELS` dict are **separate** — keep them in sync manually when updating prices. Token split: 30% input / 20% reasoning / 50% output (or 40/60 without reasoning).
+`cloudflare/index.html` `MODELS` array and `tokeneyes/pricing.py` `MODELS` dict are **separate**, but `test_pricing_catalog.py` now enforces parity — run `python3 -m pytest` after touching either.
+
+Each model carries `input`, `cache`, `output`, `reasoning`:
+- `cache` is the prompt-cache read rate (~10% of input). null means no cached tier.
+- `reasoning` tracks `output`, not `input` — providers meter thinking tokens as output. null means no thinking mode.
+
+Splits come from `WORKLOAD_PROFILES` (defined in both files, must stay in sync): coding agent / chat / RAG / one-shot. `calcTokens()` folds unsupported buckets into the nearest supported one so every profile always sums to 100% of the budget.
+
+## Reverse Mode
+
+`reverseMode` in `cloudflare/index.html` flips the app: user enters an AI bill, gets real-world objects back from `REFS_REAL`. It builds a synthetic `pd` and reuses `renderResults`, so the hero, table, and share card all work unchanged. Two branches key off the flag — `getFunFacts()` (swaps in real-world comparisons) and `curateQuips()` (uses local `reverseQuips()` instead of provider quips). No network call, no API key.
+
+## FX Rates
+
+`/fx` in `_worker.js` fetches ECB rates via Frankfurter, caches in `QUIPS_KV` for 12h, and serves a stale cache rather than failing. The client's `ECB_EUR_RATES` is only a pinned fallback for deploys without the worker — don't treat it as the source of truth.
 
 ---
 
@@ -109,7 +124,10 @@ The funny one-liner after each result has two paths:
 | Add a new vision model option (Gemini) | `cloudflare/index.html` `#gemini-model-input` select options + `geminiVisionModel` state |
 | Add a new vision model option (CF AI) | `cloudflare/index.html` `#cf-model-input` select options + `cfVisionModel` state |
 | Add a new OpenRouter free model | `cloudflare/index.html` `OPENROUTER_MODELS` array + `tokeneyes/vision.py` `OPENROUTER_FREE_MODELS` |
-| Change quip prompt tone | `cloudflare/index.html` `quipPrompt` / `normalQuipPrompt` functions |
+| Change quip prompt tone | `cloudflare/index.html` `buildPrompt()` + `tokeneyes/vision.py` `QUIP_PROMPT` |
+| Add a banned quip cliché | `BORING_QUIP_PATTERNS` in `cloudflare/index.html` **and** `tokeneyes/vision.py` |
+| Add/edit a workload profile | `WORKLOAD_PROFILES` in `cloudflare/index.html` + `tokeneyes/pricing.py` |
+| Add a real-world item to reverse mode | `cloudflare/index.html` `REFS_REAL` array |
 | Update Gemma model used for free quips | `cloudflare/_worker.js` `ADVISOR_MODEL` constant |
 | Change token split ratios | `cloudflare/index.html` `calcTokens()` `sp` object |
 | Update share card design | `cloudflare/index.html` `#share-btn` click handler (Canvas API) |
@@ -176,10 +194,12 @@ _Reviewed by Claude Sonnet 4.6 · 2026-04-07_
 The architecture as documented is logically sound. Specific checks:
 
 - **Security model** — user keys are memory-only in-browser, never touch any TokenEyes server. Dynamic routes in `_worker.js` (`/advisor`, `/country`) use the deployer's Workers AI binding exclusively. No credentials are committed to the repo. Safe to open-source as-is.
-- **Quip fallback chain** — Normal (user key + country context) → Simple toggle (`/advisor` → Gemma 4 → KV pool → 25 static quips). Every layer degrades gracefully; the UI always gets a quip or hides the card cleanly.
+- **Quip path** — Default mode asks the selected provider for price + quips in one JSON response, then filters obviously generic quips in-browser. `Skip quips` removes the joke entirely. Legacy `/advisor` remains available but is not the current UI path.
 - **Provider/model flow** — per-provider model selectors (Gemini, CF AI, OpenRouter) wired to state variables and used in the correct API calls. Default model shown on first load. `r-via` chip reflects the actual model used.
 - **Token math** — split ratios (30/20/50 with reasoning, 40/60 without) are applied consistently in `calcTokens()` and used in both the hero count and the full table.
 - **Docs graph** — root (`AGENTS.md`) → task table covers all current entry points. Split rules have clear triggers and a defined process. No circular references.
 - **Removed complexity** — local model (`or_base_url`) removed cleanly from JS, Python CLI, FastAPI, and vision module with no dangling references.
 
 One known divergence to watch: `cloudflare/index.html` `MODELS` array and `tokeneyes/pricing.py` `MODELS` dict are manually synced — no test enforces parity. Acceptable at this scale; flag if the project grows.
+
+_Updated 2026-07-22:_ parity is now enforced by `test_pricing_catalog.py`, which parses the JS `MODELS` array and diffs it against the Python dict (including the new `cache` field), asserts reasoning is priced at the output rate, and checks every `POPULAR_HERO_MODELS` id exists. `WORKLOAD_PROFILES` is still duplicated by hand across the two files and is **not** covered by a test — that's the remaining drift risk.

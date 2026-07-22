@@ -77,8 +77,8 @@ async def analyze(
 
         suffix = Path(image.filename or "upload.jpg").suffix or ".jpg"
         with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
-            tmp.write(await image.read())
             tmp_path = tmp.name
+            tmp.write(await image.read())
 
         try:
             if mode == "guess":

@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 import json
 import os
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -101,16 +102,59 @@ Return JSON (no markdown fencing):
 """
 
 QUIP_PROMPT = """\
-{item} costs {price_label} and is equivalent to {tokens:,} {model_name} tokens.
+You are writing one joke for a price-to-token app.
 
-Write one short productivity meme line (under 110 chars) about what that same spend could
-have done in useful AI work: proposals, research briefs, support replies, summaries,
-spreadsheet cleanup, or admin work.
+Item: {item}
+Price: {price_label}
+Token value: {tokens:,} {model_name} tokens
 
-Keep it punchy, money-aware, and a little ruthless.
-Avoid tweets, chat minutes, random internet culture, and absurd sci-fi jokes.
+Write one short line (under 110 chars) that makes this exact purchase look ridiculous
+next to that AI work budget.
+
+Compare it against something concrete, not the raw number. Useful sizes: a commit
+message is about 600 tokens, a stack-trace walkthrough 1,600, a refactor plan 3,500,
+a README 8,000, a test suite for one module 20,000, a PR review with full context
+45,000, a deep debug session 90,000, an architecture doc 180,000.
+
+A strong line:
+- picks ONE of those units and says how many of them this purchase is worth,
+  or aims squarely at the specific thing being bought
+- ties directly to the item, use-case, or buying pain
+- uses one concrete angle that fits the purchase: checkout pain, ownership hassle,
+  upgrade regret, resale, or wasted convenience
+- sounds like it only fits this purchase, not any random expensive object
+- is deadpan: no exclamation marks, no puns on the product name, no "imagine if"
+
+A number by itself is not a joke.
+
+Weak lines are invalid if they rely on generic crutches like write a novel,
+movie script, poems, haikus, fan fiction, tweets, chat with AI for X,
+chat minutes, generate images, train a tiny AI, touching grass, a crying wallet,
+or "that's a lot of tokens".
+
 No quotes. Just the line.
 """
+
+BORING_QUIP_PATTERNS = [
+    re.compile(r"\bwrite (?:a|the|another)? ?(?:short )?novel\b", re.I),
+    re.compile(r"\bmovie script\b", re.I),
+    re.compile(r"\bhaikus?\b", re.I),
+    re.compile(r"\bpoems?\b", re.I),
+    re.compile(r"\bshort stories?\b", re.I),
+    re.compile(r"\bfan fiction\b", re.I),
+    re.compile(r"\btweets?\b", re.I),
+    re.compile(r"\bchat with ai\b", re.I),
+    re.compile(r"\bchat minutes?\b", re.I),
+    re.compile(r"\btrain (?:a|your) (?:small|tiny) ai\b", re.I),
+    re.compile(r"\bgenerate (?:\d[\d,]*|endless|a whole|million|1000s of )?(?:ai )?(?:images|poems|short stories)\b", re.I),
+    re.compile(r"^that'?s (?:enough|[\d.,]+\s*[mkb]?)", re.I),
+    re.compile(r"^you could\b", re.I),
+    re.compile(r"\btouch(?:ing)? grass\b", re.I),
+    re.compile(r"\bwallet (?:is )?(?:cry|weep|sob)", re.I),
+    re.compile(r"\bthat(?:'?s| is) a lot of tokens\b", re.I),
+    re.compile(r"\bimagine if\b", re.I),
+    re.compile(r"\bbreak the bank\b", re.I),
+]
 
 
 @dataclass
@@ -314,6 +358,48 @@ def _parse_result(text: str, backend: str) -> VisionResult:
     )
 
 
+def _normalize_quip(text: str) -> str:
+    return text.strip().strip("\"'“”")
+
+
+def _is_boring_quip(text: str) -> bool:
+    quip = _normalize_quip(text)
+    if not quip or len(quip) > 110:
+        return True
+    return any(pattern.search(quip) for pattern in BORING_QUIP_PATTERNS)
+
+
+# Concrete units to measure a purchase against, largest first. Mirrors REFS_DEV
+# in cloudflare/index.html.
+WORK_UNITS = [
+    (180_000, "architecture doc", "architecture docs"),
+    (90_000, "deep debug session", "deep debug sessions"),
+    (45_000, "PR review", "PR reviews"),
+    (20_000, "test suite", "test suites"),
+    (8_000, "README", "READMEs"),
+    (3_500, "refactor plan", "refactor plans"),
+    (1_600, "stack-trace walkthrough", "stack-trace walkthroughs"),
+    (600, "commit message", "commit messages"),
+]
+
+
+def _fallback_quip(item: str, tokens: int, model_name: str) -> str:
+    clean_item = " ".join((item or "this thing").split()).strip()
+    if len(clean_item) > 34:
+        clean_item = clean_item[:33].rstrip() + "…"
+
+    # Pick the unit that lands in a countable range, so the comparison means
+    # something instead of restating the token total.
+    for size, singular, plural in WORK_UNITS:
+        count = tokens / size
+        if 1.5 <= count < 10_000:
+            return f"One {clean_item}, or {round(count):,} {plural}. It does not review code."
+        if 0.8 <= count < 1.5:
+            return f"One {clean_item}, or roughly one {singular}. Pick carefully."
+
+    return f"{clean_item} costs {tokens:,} {model_name} tokens and ships nothing."
+
+
 # ── Public API ────────────────────────────────────────────────────────────────
 
 def read_price(source: str, backend: str = "auto", or_model: str = OPENROUTER_DEFAULT_MODEL) -> VisionResult:
@@ -374,9 +460,13 @@ def generate_quip(item: str, price_usd: float, tokens: int, model_name: str,
             model_name=model_name,
         )
         if backend == "gemini":
-            return _quip_gemini(prompt)
+            quip = _quip_gemini(prompt)
+            if quip and not _is_boring_quip(quip):
+                return _normalize_quip(quip)
         if backend == "openrouter":
-            return _quip_openrouter(prompt, or_model)
+            quip = _quip_openrouter(prompt, or_model)
+            if quip and not _is_boring_quip(quip):
+                return _normalize_quip(quip)
     except Exception:
         pass
-    return "Your backlog could've been lighter. Instead, you bought this."
+    return _fallback_quip(item, tokens, model_name)

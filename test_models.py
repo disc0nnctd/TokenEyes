@@ -7,10 +7,12 @@ from pathlib import Path
 
 # Load keys from .env
 env = {}
-for line in Path('.env').read_text().splitlines():
-    if '=' in line and not line.startswith('#'):
-        k, v = line.split('=', 1)
-        env[k.strip()] = v.strip()
+env_path = Path('.env')
+if env_path.exists():
+    for line in env_path.read_text().splitlines():
+        if '=' in line and not line.startswith('#'):
+            k, v = line.split('=', 1)
+            env[k.strip()] = v.strip()
 
 GEMINI_KEY    = env.get('GEMINI_API_KEY', '')
 OR_KEY        = env.get('OPENROUTER_API_KEY', '')

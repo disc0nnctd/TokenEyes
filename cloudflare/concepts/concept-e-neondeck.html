@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TokenEyes Concept E</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --bg: #04050d;
+      --text: #dff4ff;
+      --muted: rgba(223, 244, 255, 0.72);
+      --cyan: #00d5ff;
+      --pink: #ff4bd1;
+      --amber: #ffb84d;
+      --line: rgba(0, 213, 255, 0.35);
+    }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 12% 15%, rgba(255,75,209,0.20), transparent 24%),
+        radial-gradient(circle at 86% 20%, rgba(0,213,255,0.19), transparent 26%),
+        linear-gradient(180deg, #03040b, #04050d 60%, #020309);
+      color: var(--text);
+      font-family: "Space Mono", monospace;
+    }
+    .wrap {
+      width: min(1140px, calc(100vw - 24px));
+      margin: 16px auto;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 18px;
+      box-shadow: inset 0 0 60px rgba(0, 213, 255, 0.05), 0 26px 80px rgba(0, 0, 0, 0.5);
+      background: rgba(5, 8, 16, 0.9);
+    }
+    .hud {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 12px;
+    }
+    h1 {
+      margin: 10px 0 10px;
+      font-family: "Syncopate", sans-serif;
+      font-size: clamp(2.2rem, 5vw, 4.8rem);
+      line-height: 1.02;
+      letter-spacing: 0.03em;
+      text-shadow: 0 0 18px rgba(0, 213, 255, 0.35);
+    }
+    .lede {
+      color: var(--muted);
+      max-width: 58ch;
+      line-height: 1.6;
+    }
+    .grid {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+    .cell {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      min-height: 120px;
+      background: rgba(0,213,255,0.05);
+    }
+    .cell strong {
+      display: block;
+      margin-top: 8px;
+      font-size: 1.4rem;
+      color: var(--amber);
+    }
+    .actions {
+      margin-top: 14px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      min-height: 46px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      color: var(--text);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      background: rgba(0,213,255,0.06);
+    }
+    .btn.primary {
+      border-color: rgba(255,75,209,0.45);
+      background: rgba(255,75,209,0.14);
+    }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="hud">Concept E: Neon Deck / Experimental</div>
+    <h1>PRICE TO TOKENS // LIVE</h1>
+    <p class="lede">A high-contrast cyber deck variant. More niche, but strong if you want an edgy identity that does not look like another clean startup calculator.</p>
+    <section class="grid">
+      <article class="cell"><div>Input</div><strong>$9.25</strong></article>
+      <article class="cell"><div>Output</div><strong>1.8M</strong></article>
+      <article class="cell"><div>Quip</div><strong>"One snack = one long context."</strong></article>
+    </section>
+    <div class="actions">
+      <a class="btn primary" href="#">Capture</a>
+      <a class="btn" href="#">Manual</a>
+      <a class="btn" href="#">Share</a>
+    </div>
+  </main>
+</body>
+</html>

@@ -1,8 +1,8 @@
 // _worker.js — handles all dynamic routes; falls back to static assets
-// Routes: POST /proxy, POST /advisor, GET /country
+// Routes: POST /proxy, POST /advisor, GET /country, GET /fx
 // Bindings (set in Pages → Settings → Variables & Secrets):
 //   AI           — Workers AI (for Gemma quips in /advisor)
-//   QUIPS_KV     — KV namespace (quip pool cache)
+//   QUIPS_KV     — KV namespace (quip pool cache + FX rate cache)
 //   PROXY_PASSWORD, GEMINI_API_KEY, OPENROUTER_API_KEY, NVIDIA_API_KEY — for /proxy
 //   CF_ACCOUNT_ID, CF_API_TOKEN — optional 4th fallback in /proxy
 //   QUIP_COUNT   — number of quips to generate per scan (default: 3)
@@ -15,10 +15,48 @@ export default {
     if (url.pathname === '/advisor') return handleAdvisor(request, env);
     if (url.pathname === '/country') return handleCountry(request);
     if (url.pathname === '/config')  return handleConfig(env);
+    if (url.pathname === '/fx')      return handleFx(env);
 
     return env.ASSETS.fetch(request);
   },
 };
+
+// ══ /fx ═══════════════════════════════════════════════════════════════════════
+// Daily EUR-based reference rates. The client ships a pinned table as a floor;
+// this route refreshes it so a stale deploy doesn't quote months-old FX.
+const FX_KEY = 'fx_rates';
+const FX_TTL_S = 60 * 60 * 12;
+const FX_SOURCE = 'https://api.frankfurter.dev/v1/latest?base=EUR';
+
+async function handleFx(env) {
+  const cached = env.QUIPS_KV ? await env.QUIPS_KV.get(FX_KEY, 'json') : null;
+  if (cached?.rates && Date.now() - (cached.fetched_at || 0) < FX_TTL_S * 1000) {
+    return json({ ...cached, cached: true });
+  }
+
+  try {
+    const r = await fetch(FX_SOURCE, { cf: { cacheTtl: FX_TTL_S } });
+    if (!r.ok) throw new Error(`upstream ${r.status}`);
+    const d = await r.json();
+    if (!d?.rates || typeof d.rates !== 'object') throw new Error('bad payload');
+
+    const payload = {
+      base: 'EUR',
+      date: d.date || null,
+      rates: d.rates,
+      source: 'ECB via Frankfurter',
+      fetched_at: Date.now(),
+    };
+    if (env.QUIPS_KV) {
+      await env.QUIPS_KV.put(FX_KEY, JSON.stringify(payload), { expirationTtl: FX_TTL_S * 2 });
+    }
+    return json({ ...payload, cached: false });
+  } catch (e) {
+    // Serve a stale cache rather than nothing — old live rates beat the pinned table.
+    if (cached?.rates) return json({ ...cached, cached: true, stale: true });
+    return json({ error: 'FX unavailable' }, 503);
+  }
+}
 
 // ══ /config ═══════════════════════════════════════════════════════════════════
 function handleConfig(env) {

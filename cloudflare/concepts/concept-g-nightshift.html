@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TokenEyes Concept G</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --bg: #090d1a;
+      --card: rgba(15, 23, 40, 0.88);
+      --line: rgba(129, 167, 255, 0.22);
+      --text: #edf3ff;
+      --muted: rgba(237,243,255,0.7);
+      --indigo: #6c7dff;
+      --teal: #43d8cf;
+      --coral: #ff8862;
+    }
+    body {
+      margin: 0;
+      font-family: "Outfit", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 18% 8%, rgba(108,125,255,0.22), transparent 24%),
+        radial-gradient(circle at 84% 14%, rgba(67,216,207,0.19), transparent 22%),
+        linear-gradient(180deg, #070b15, #090d1a 60%, #050711);
+    }
+    .page {
+      width: min(1180px, calc(100vw - 24px));
+      margin: 16px auto;
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 14px;
+    }
+    .col {
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      box-shadow: 0 22px 70px rgba(0,0,0,0.35);
+      padding: 20px;
+    }
+    .meta {
+      color: var(--muted);
+      letter-spacing: 0.09em;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+    }
+    h1 {
+      font-family: "Syne", sans-serif;
+      margin: 10px 0 12px;
+      font-size: clamp(3rem, 6vw, 5.5rem);
+      line-height: 0.93;
+      max-width: 10ch;
+    }
+    .lede { color: var(--muted); line-height: 1.6; max-width: 56ch; }
+    .cards {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .card {
+      border-radius: 16px;
+      padding: 14px;
+      min-height: 125px;
+      border: 1px solid rgba(255,255,255,0.09);
+      background: rgba(255,255,255,0.03);
+    }
+    .card strong {
+      display: block;
+      margin-top: 8px;
+      font-size: 1.5rem;
+    }
+    .actions {
+      margin-top: 14px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      min-height: 46px;
+      padding: 0 16px;
+      border-radius: 12px;
+      text-decoration: none;
+      color: var(--text);
+      border: 1px solid var(--line);
+      display: inline-flex;
+      align-items: center;
+      font-weight: 700;
+    }
+    .btn.primary { background: linear-gradient(135deg, rgba(108,125,255,0.25), rgba(255,136,98,0.2)); }
+    .panel {
+      margin-top: 10px;
+      border-top: 1px solid rgba(255,255,255,0.09);
+      padding-top: 12px;
+    }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 0;
+      border-top: 1px solid rgba(255,255,255,0.07);
+    }
+    .row:first-child { border-top: 0; }
+    .muted { color: var(--muted); }
+    @media (max-width: 980px) {
+      .page, .cards { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="col">
+      <div class="meta">Concept G: Night Shift</div>
+      <h1>Quietly bold, not flashy.</h1>
+      <p class="lede">This variant keeps the dark premium look, but softens the "terminal" tone with calmer cards and friendlier spacing.</p>
+      <div class="cards">
+        <article class="card"><div class="muted">Price</div><strong>$12.40</strong></article>
+        <article class="card"><div class="muted">Tokens</div><strong>2.4M</strong></article>
+      </div>
+      <div class="actions">
+        <a class="btn primary" href="#">Open Camera</a>
+        <a class="btn" href="#">Type Price</a>
+        <a class="btn" href="#">Share</a>
+      </div>
+    </section>
+    <aside class="col">
+      <div class="meta">Output Preview</div>
+      <div class="panel">
+        <div class="row"><span class="muted">Quip</span><strong>"That burger is a prompt marathon."</strong></div>
+        <div class="row"><span class="muted">Claude Sonnet</span><strong>2.4M</strong></div>
+        <div class="row"><span class="muted">GPT tier</span><strong>1.9M</strong></div>
+        <div class="row"><span class="muted">Gemini tier</span><strong>2.5M</strong></div>
+      </div>
+    </aside>
+  </main>
+</body>
+</html>
