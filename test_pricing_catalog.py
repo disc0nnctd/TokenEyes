@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from tokeneyes.pricing import DISPLAY_NAMES, MODELS
+from tokeneyes.pricing import DISPLAY_NAMES, MODELS, WORKLOAD_PROFILES
 
 
 ROOT = Path(__file__).parent
@@ -52,6 +52,30 @@ def test_cloudflare_models_match_python_catalog() -> None:
         assert model["cache"] == MODELS[model_id].get("cache")
         assert model["output"] == MODELS[model_id]["output"]
         assert model["reasoning"] == MODELS[model_id].get("reasoning")
+
+
+def test_cloudflare_workload_profiles_match_python_catalog() -> None:
+    text = CLOUDFLARE_INDEX.read_text()
+    match = re.search(r"const WORKLOAD_PROFILES = \[(.*?)\];", text, re.DOTALL)
+    assert match, "WORKLOAD_PROFILES array not found in cloudflare/index.html"
+
+    profile_re = re.compile(
+        r"\{\s*id:'(?P<id>[^']+)'.*?"
+        r"input:(?P<input>\d+)\s*,\s*cache:(?P<cache>\d+)\s*,\s*"
+        r"reasoning:(?P<reasoning>\d+)\s*,\s*output:(?P<output>\d+)\s*\}"
+    )
+    profiles = {
+        item.group("id"): {
+            key: int(item.group(key)) / 100
+            for key in ("input", "cache", "reasoning", "output")
+        }
+        for item in profile_re.finditer(match.group(1))
+    }
+
+    assert list(profiles.keys()) == list(WORKLOAD_PROFILES.keys())
+    for profile_id, split in profiles.items():
+        assert split == WORKLOAD_PROFILES[profile_id], profile_id
+        assert abs(sum(split.values()) - 1.0) < 1e-9, profile_id
 
 
 def test_reasoning_is_billed_at_the_output_rate() -> None:

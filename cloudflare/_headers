@@ -12,4 +12,4 @@
   #   - connect: allow Gemini + OpenRouter + Cloudflare Workers AI + NVIDIA NIM explicitly
   #   - img-src: allow blob: and data: for captured frames
   #   - no unsafe-eval, no unsafe-inline scripts (app is one inline script block, needed)
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; connect-src 'self' https://generativelanguage.googleapis.com https://openrouter.ai https://api.cloudflare.com https://integrate.api.nvidia.com; frame-ancestors 'none';
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' blob: data:; connect-src 'self' https://generativelanguage.googleapis.com https://openrouter.ai https://api.cloudflare.com https://integrate.api.nvidia.com; frame-ancestors 'none';

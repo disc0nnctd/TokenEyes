@@ -20,11 +20,7 @@ TokenEyes converts real-world prices (read from photos via vision AI) into AI to
 ```
 cloudflare/          ← MAIN PRODUCT (Cloudflare Pages static site)
   index.html         ← entire app: camera, provider config, token math, reverse mode, UI
-  _worker.js         ← active runtime for dynamic routes: /proxy, /advisor, /country, /config, /fx
-  functions/
-    advisor.js       ← legacy Pages Function copy (runtime logic is in _worker.js)
-    country.js       ← legacy Pages Function copy (runtime logic is in _worker.js)
-    proxy.js         ← legacy Pages Function copy (runtime logic is in _worker.js)
+  _worker.js         ← runtime for all dynamic routes: /proxy, /advisor, /country, /config, /fx
   _headers           ← CSP + security headers
   DEPLOY.md          ← deployment instructions + required CF bindings
 
@@ -202,4 +198,4 @@ The architecture as documented is logically sound. Specific checks:
 
 One known divergence to watch: `cloudflare/index.html` `MODELS` array and `tokeneyes/pricing.py` `MODELS` dict are manually synced — no test enforces parity. Acceptable at this scale; flag if the project grows.
 
-_Updated 2026-07-22:_ parity is now enforced by `test_pricing_catalog.py`, which parses the JS `MODELS` array and diffs it against the Python dict (including the new `cache` field), asserts reasoning is priced at the output rate, and checks every `POPULAR_HERO_MODELS` id exists. `WORKLOAD_PROFILES` is still duplicated by hand across the two files and is **not** covered by a test — that's the remaining drift risk.
+_Updated 2026-07-22:_ parity is now enforced by `test_pricing_catalog.py`, which parses the JS `MODELS` array and diffs it against the Python dict (including the new `cache` field), asserts reasoning is priced at the output rate, and checks every `POPULAR_HERO_MODELS` id exists. `WORKLOAD_PROFILES` parity is covered the same way (JS percentages vs Python fractions, plus a sums-to-100% check), so both duplicated tables are now test-enforced.
