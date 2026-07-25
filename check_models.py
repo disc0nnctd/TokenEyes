@@ -1,6 +1,6 @@
 """
 Test different vision models on sampledata images and compare price identification.
-Usage: python test_models.py [image_path]
+Usage: python check_models.py [image_path]
 """
 import os, sys, json, base64, time
 from pathlib import Path
