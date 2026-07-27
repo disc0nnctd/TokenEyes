@@ -8,7 +8,10 @@
 "No thanks, I'm watching my tokens."**
 
 Point your camera at any price tag. Find out what it costs in AI tokens.
-That $6 latte? 1.2 million Claude Sonnet tokens.
+That $6 latte? 1.2 million Claude Sonnet tokens if you're chatting — but
+**17 million** if you're a coding agent, because agents re-read a prompt-cached
+context that bills at a tenth of the price. Same money, 14x more tokens. The gag
+is a Trojan horse for the one pricing fact most token calculators get wrong.
 
 → **[Try it live](https://token-eyes.pages.dev/)** — no signup, no backend, keys stay in your browser.
 
